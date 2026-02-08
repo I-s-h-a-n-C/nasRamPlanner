@@ -266,10 +266,10 @@ p strong {
 .ram-stats {
     font-size: 13px;
     margin-bottom: 15px;
-    padding: 15px;
-    background-color: #1e293b;
-    border-radius: 6px;
-    border: 1px solid #334155;
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
+    border: none;
 }
 
 .ram-stats div {
@@ -325,13 +325,14 @@ p strong {
 }
 
 #saved-configs li {
-    margin-bottom: 10px;
-    padding: 12px;
-    background-color: #0f172a;
-    border-radius: 6px;
+    margin-bottom: 15px;
+    padding: 12px 0;
+    background-color: transparent;
+    border-radius: 0;
     border-left: 3px solid #06b6d4;
     color: #cbd5e1;
     font-size: 0.95em;
+    padding-left: 12px;
 }
 
 /* Results Container */
@@ -398,17 +399,22 @@ p strong {
 }
 
 .summary-card {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 25px;
+    background-color: transparent;
+    border: none;
+    border-right: 1px solid #334155;
+    border-radius: 0;
+    padding: 20px;
     text-align: center;
     transition: all 0.3s ease;
 }
 
+.summary-card:last-child {
+    border-right: none;
+}
+
 .summary-card:hover {
-    border-color: #06b6d4;
-    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+    border-color: #475569;
+    box-shadow: none;
 }
 
 .summary-icon {
@@ -435,20 +441,21 @@ p strong {
 
 /* Notes Card */
 .notes-card {
-    background-color: #1e293b;
-    border: 1px solid #334155;
+    background-color: transparent;
+    border: none;
     border-left: 4px solid #f59e0b;
-    border-radius: 8px;
-    padding: 25px;
+    border-radius: 0;
+    padding: 25px 0;
     margin-bottom: 40px;
 }
 
 /* Saved Configs Card */
 .saved-configs-card {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 25px;
+    background-color: transparent;
+    border: none;
+    border-top: 1px solid #334155;
+    border-radius: 0;
+    padding: 25px 0;
     margin-bottom: 40px;
 }
 
