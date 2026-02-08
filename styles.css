@@ -21,6 +21,15 @@ h1 {
     font-weight: 400;
 }
 
+.site-title {
+    display: block;
+    max-width: 230px;
+    width: 100%;
+    height: auto;
+    margin: 12px auto;
+    padding: 0;
+}
+
 h2 {
     margin-bottom: 20px;
     color: #e2e8f0;

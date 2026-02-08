@@ -186,15 +186,18 @@ function calculateRAM() {
 
     // 3. WORKLOAD RAM
     let workloadRAM = 0;
+    let vmExtra = 0; // additional fixed overhead for VM hosts (GB)
     switch(primaryUse) {
         case 'backup': workloadRAM = 1; break;
         case 'media': workloadRAM = 2; break;
         case 'database': workloadRAM = 2; break;
-        case 'vm': workloadRAM = 2; break;
+        case 'vm': workloadRAM = 2; vmExtra = 20; break;
         case 'mixed': workloadRAM = 2; break;
         default: workloadRAM = 1;
     }
     total += workloadRAM;
+    // Add VM overhead after workload baseline
+    if (vmExtra > 0) total += vmExtra;
 
     // 4. CONCURRENT USERS
     let userRAM = numUsers * 0.25;
@@ -259,7 +262,7 @@ function calculateRAM() {
     // Generate performance notes
     let notes = [];
     if (numUsers > 10) notes.push('High concurrent users - verify this count is accurate');
-    if (primaryUse === 'vm') notes.push('VM host - remember to add RAM for allocated virtual machines');
+    if (primaryUse === 'vm') notes.push('VM host - +20GB VM overhead applied for guest allocations');
     if (raidType === 'raid0') notes.push('RAID 0 has no redundancy - data loss if any drive fails');
     if (primaryUse === 'media' && remoteAccess === 'tunnel') notes.push('Transcoding over VPN will be slower - consider balanced priority');
     if (usableStorage > 50000) notes.push('Very large storage - monitor pool health regularly');
