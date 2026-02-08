@@ -89,7 +89,6 @@ function loadPreset(presetName) {
         console.error('Preset not found:', presetName);
         return;
     }
-    
     document.getElementById('nas-model').value = preset.nasModel;
     document.getElementById('current-ram').value = preset.currentRAM;
     document.getElementById('max-ram').value = preset.maxRAM;
@@ -111,9 +110,6 @@ function loadPreset(presetName) {
 }
 
 // RAM pricing estimates (per 16GB)
-// DDR3: $40 per 16GB
-// DDR4: $60 per 16GB
-// DDR5: $100 per 16GB
 const ramPrices = {
     ddr3: 40,
     ddr4: 60,
@@ -122,7 +118,6 @@ const ramPrices = {
 
 function getRAIDUsableCapacity(total, numDrives, raidType) {
     if (numDrives === 0) return 0;
-    
     const driveSize = total / numDrives;
     switch(raidType) {
         case 'raid0': return total;
@@ -137,18 +132,13 @@ function getRAIDUsableCapacity(total, numDrives, raidType) {
 function estimateRAMPrice(recommendedRAM, ddrType) {
     const currentRAM = parseFloat(document.getElementById('current-ram').value) || 0;
     const ramNeeded = Math.max(0, recommendedRAM - currentRAM);
-    
-    // Get price per 16GB for the DDR type
     const pricePerSixteenGB = ramPrices[ddrType] || ramPrices.ddr4;
-    
-    // Calculate cost based on 16GB chunks
     const cost = (ramNeeded / 16) * pricePerSixteenGB;
     return cost;
 }
 
 function calculateRAM() {
     console.log('calculateRAM called');
-    
     const currentRAM = parseFloat(document.getElementById('current-ram').value) || 0;
     const maxRAM = parseFloat(document.getElementById('max-ram').value) || 0;
     const numDrives = parseInt(document.getElementById('num-drives').value) || 0;
@@ -164,7 +154,7 @@ function calculateRAM() {
 
     let total = 0;
 
-    // 1️⃣ BASE OS REQUIREMENT
+    // 1. BASE OS REQUIREMENT
     let baseOS = 2.5;
     switch(osType) {
         case 'synology': baseOS = 2.5; break;
@@ -177,11 +167,8 @@ function calculateRAM() {
     }
     total += baseOS;
 
-    // 2️⃣ STORAGE OVERHEAD
-    // Per drive overhead
+    // 2. STORAGE OVERHEAD
     let storageOverhead = numDrives * 0.4;
-    
-    // RAID overhead
     switch(raidType) {
         case 'raid1': storageOverhead += 0.5; break;
         case 'raid5': storageOverhead += 1; break;
@@ -189,8 +176,6 @@ function calculateRAM() {
         case 'raid10': storageOverhead += 1; break;
         default: break;
     }
-    
-    // Large storage adjustment (only if > 20TB usable)
     const totalStorage = numDrives * driveCapacity;
     const usableStorage = getRAIDUsableCapacity(totalStorage, numDrives, raidType);
     if (usableStorage > 20000) {
@@ -199,58 +184,36 @@ function calculateRAM() {
     }
     total += storageOverhead;
 
-    // 3️⃣ WORKLOAD RAM
+    // 3. WORKLOAD RAM
     let workloadRAM = 0;
     switch(primaryUse) {
-        case 'backup':
-            workloadRAM = 1;
-            break;
-        case 'media':
-            workloadRAM = 2; // Direct play only, no transcoding
-            break;
-        case 'database':
-            workloadRAM = 2;
-            break;
-        case 'vm':
-            workloadRAM = 2; // Hypervisor overhead (user would add VM-specific RAM separately)
-            break;
-        case 'mixed':
-            workloadRAM = 2;
-            break;
-        default:
-            workloadRAM = 1;
+        case 'backup': workloadRAM = 1; break;
+        case 'media': workloadRAM = 2; break;
+        case 'database': workloadRAM = 2; break;
+        case 'vm': workloadRAM = 2; break;
+        case 'mixed': workloadRAM = 2; break;
+        default: workloadRAM = 1;
     }
     total += workloadRAM;
 
-    // 4️⃣ CONCURRENT USERS
+    // 4. CONCURRENT USERS
     let userRAM = numUsers * 0.25;
-    userRAM = Math.min(userRAM, 4); // Cap at +4GB unless enterprise
+    userRAM = Math.min(userRAM, 4);
     total += userRAM;
 
-    // 5️⃣ INTERNET & SECURITY OVERHEAD
+    // 5. INTERNET & SECURITY OVERHEAD
     let securityRAM = 0;
-    
-    if (internetConnected === 'yes') {
-        securityRAM += 0.5;
-    }
-    
-    if (remoteAccess === 'port-forward') {
-        securityRAM += 0.5;
-    } else if (remoteAccess === 'tunnel') {
-        securityRAM += 0.5; // Light overhead for VPN/SSH
-    }
-    
-    if (botProtection === 'basic') {
-        securityRAM += 0.5;
-    } else if (botProtection === 'advanced') {
-        securityRAM += 1;
-    }
+    if (internetConnected === 'yes') securityRAM += 0.5;
+    if (remoteAccess === 'port-forward') securityRAM += 0.5;
+    else if (remoteAccess === 'tunnel') securityRAM += 0.5;
+    if (botProtection === 'basic') securityRAM += 0.5;
+    else if (botProtection === 'advanced') securityRAM += 1;
     total += securityRAM;
 
-    // 6️⃣ CALCULATE THREE TIER RECOMMENDATIONS
+    // 6. CALCULATE THREE TIER RECOMMENDATIONS
     const tiers = [1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 56, 64, 70, 80, 90, 120, 128];
-    
-    // Tier 1: Minimum Safe (raw total without safety buffer)
+
+    // Tier 1: Minimum Safe
     let minSafeRAM = tiers[0];
     for (let tier of tiers) {
         if (total <= tier) {
@@ -259,16 +222,13 @@ function calculateRAM() {
         }
     }
     minSafeRAM = Math.min(maxRAM, minSafeRAM);
-    
-    // Tier 2: Recommended (with 1.15× safety buffer)
+
+    // Tier 2: Recommended
     let rawTotal = total;
     let recommendedTotal = total * 1.15;
-    
-    // Enforce minimum +1GB buffer
     if ((recommendedTotal - rawTotal) < 1) {
         recommendedTotal = rawTotal + 1;
     }
-    
     let recommendedRAM = tiers[0];
     for (let tier of tiers) {
         if (recommendedTotal <= tier) {
@@ -277,8 +237,8 @@ function calculateRAM() {
         }
     }
     recommendedRAM = Math.min(maxRAM, recommendedRAM);
-    
-    // Tier 3: For Growth (additional 30% for future expansion)
+
+    // Tier 3: For Growth
     let growthTotal = recommendedTotal * 1.3;
     let growthRAM = tiers[0];
     for (let tier of tiers) {
@@ -290,11 +250,9 @@ function calculateRAM() {
     growthRAM = Math.min(maxRAM, growthRAM);
 
     const estimatedCost = estimateRAMPrice(recommendedRAM, ddrType);
-
-    // Update hidden fields
     const recRAMField = document.getElementById('recommended-ram');
     const ramTierField = document.getElementById('ram-tier');
-    
+
     if (recRAMField) recRAMField.value = recommendedRAM.toFixed(0);
     if (ramTierField) ramTierField.value = recommendedRAM > 32 ? 'premium' : (recommendedRAM > 8 ? 'mid' : 'budget');
 
@@ -308,13 +266,12 @@ function calculateRAM() {
     if (botProtection === 'advanced' && primaryUse === 'backup') notes.push('Advanced scanning may be overkill for pure backup storage');
     const notesText = notes.length > 0 ? notes.join(' ') : 'Configuration is conservative and well-balanced.';
 
-    // Update recommendation card with recommended tier only
+    // Update recommendation card
     const recRAMBig = document.getElementById('recommended-ram-big');
     const recText = document.getElementById('recommendation-text');
-    
     if (recRAMBig) recRAMBig.textContent = formatCapacity(recommendedRAM);
     if (recText) {
-        const upgradeMsg = recommendedRAM > currentRAM 
+        const upgradeMsg = recommendedRAM > currentRAM
             ? `Upgrade by ${recommendedRAM - currentRAM}GB`
             : 'Your current RAM is sufficient';
         recText.textContent = upgradeMsg;
@@ -326,7 +283,6 @@ function calculateRAM() {
     const sumUsable = document.getElementById('summary-usable');
     const sumCost = document.getElementById('summary-cost');
     const sumNotes = document.getElementById('summary-notes');
-    
     if (sumCurrent) sumCurrent.textContent = `${currentRAM}GB / ${maxRAM}GB`;
     if (sumStorage) sumStorage.textContent = formatCapacity(totalStorage);
     if (sumUsable) sumUsable.textContent = formatCapacity(usableStorage);
@@ -335,28 +291,24 @@ function calculateRAM() {
 
     // Update RAM visualizer
     const additionalNeeded = Math.max(0, recommendedRAM - currentRAM);
-    
     if (maxRAM > 0) {
         const currentPercent = (currentRAM / maxRAM) * 100;
         const additionalPercent = (additionalNeeded / maxRAM) * 100;
-
         const ramUsedBar = document.getElementById('ram-used-bar');
         const ramUsedText = document.getElementById('ram-used-text');
         const ramNeededBar = document.getElementById('ram-needed-bar');
         const ramNeededText = document.getElementById('ram-needed-text');
         const ramMaxDisplay = document.getElementById('ram-max-display');
         const ramTotalDisplay = document.getElementById('ram-total-display');
-        
+
         if (ramUsedBar) ramUsedBar.style.width = Math.min(100, currentPercent) + '%';
         if (ramUsedText) ramUsedText.textContent = formatCapacity(currentRAM);
-        
         if (ramNeededBar) ramNeededBar.style.width = Math.min(100, additionalPercent) + '%';
         if (ramNeededText) ramNeededText.textContent = additionalNeeded > 0 ? `+${additionalNeeded}GB` : '';
-        
         if (ramMaxDisplay) ramMaxDisplay.textContent = formatCapacity(maxRAM);
         if (ramTotalDisplay) ramTotalDisplay.textContent = formatCapacity(recommendedRAM);
     }
-    
+
     // Display other tiers below RAM usage
     const tierDisplay = document.getElementById('tier-display');
     if (tierDisplay) {
@@ -373,7 +325,6 @@ function calculateRAM() {
             </div>
         `;
     }
-    
     console.log('Conservative calculation - Recommended RAM:', recommendedRAM, 'GB');
 }
 
@@ -436,12 +387,10 @@ function loadConfiguration() {
 function displaySavedConfigs() {
     const configs = JSON.parse(localStorage.getItem('nasConfigs')) || [];
     const container = document.getElementById('saved-configs');
-    
     if (configs.length === 0) {
         container.innerHTML = '<p>No saved configurations</p>';
         return;
     }
-
     let html = '<p>Latest Configs:</p><ul>';
     configs.slice(-3).forEach((config, idx) => {
         html += `<li>${config.nasModel || 'Unknown'} - ${config.recommendedRAM}GB RAM - ${config.timestamp}</li>`;
@@ -450,7 +399,17 @@ function displaySavedConfigs() {
     container.innerHTML = html;
 }
 
-function resetForm() {
+function clearOldConfigs() {
+    const configs = JSON.parse(localStorage.getItem('nasConfigs')) || [];
+    if (configs.length === 0) {
+        alert('No saved configurations to delete');
+        return;
+    }
+    if (confirm(`Delete all ${configs.length} saved configurations?`)) {
+        localStorage.setItem('nasConfigs', JSON.stringify([]));
+        displaySavedConfigs();
+        alert('All saved configurations deleted!');
+    }
     document.getElementById('nas-model').value = '';
     document.getElementById('current-ram').value = '';
     document.getElementById('max-ram').value = '';
@@ -579,6 +538,7 @@ function closeTutorial() {
         localStorage.setItem('tutorialComplete', 'true');
     }
 }
+
 // RAID Info Popup Functions
 function showRAIDInfo() {
     const popup = document.getElementById('raid-popup');
@@ -594,7 +554,6 @@ function hideRAIDInfo() {
     }
 }
 
-// Close popup when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
     const raidPopup = document.getElementById('raid-popup');
     if (raidPopup) {
