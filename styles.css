@@ -21,9 +21,10 @@ h1 {
     font-weight: 400;
 }
 
+
 .site-title {
     display: block;
-    max-width: 230px;
+    max-width: 250px;
     width: 100%;
     height: auto;
     margin: 12px auto;

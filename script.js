@@ -1,4 +1,4 @@
-// Format capacity as GB or TB
+// Format capacity
 function formatCapacity(gb) {
     const numGb = parseFloat(gb);
     if (numGb >= 1000) {
@@ -7,7 +7,7 @@ function formatCapacity(gb) {
     return Math.round(numGb) + 'GB';
 }
 
-// Preset configurations
+// Presets
 const presets = {
     home: {
         nasModel: 'Home NAS',
@@ -109,7 +109,7 @@ function loadPreset(presetName) {
     calculateRAM();
 }
 
-// RAM pricing estimates (per 16GB)
+// RAM prices
 const ramPrices = {
     ddr3: 40,
     ddr4: 60,
@@ -154,7 +154,7 @@ function calculateRAM() {
 
     let total = 0;
 
-    // 1. BASE OS REQUIREMENT
+    // Base OS
     let baseOS = 2.5;
     switch(osType) {
         case 'synology': baseOS = 2.5; break;
@@ -167,7 +167,7 @@ function calculateRAM() {
     }
     total += baseOS;
 
-    // 2. STORAGE OVERHEAD
+    // Storage overhead
     let storageOverhead = numDrives * 0.4;
     switch(raidType) {
         case 'raid1': storageOverhead += 0.5; break;
@@ -184,9 +184,9 @@ function calculateRAM() {
     }
     total += storageOverhead;
 
-    // 3. WORKLOAD RAM
+    // Workload
     let workloadRAM = 0;
-    let vmExtra = 0; // additional fixed overhead for VM hosts (GB)
+    let vmExtra = 0; // VM overhead GB
     switch(primaryUse) {
         case 'backup': workloadRAM = 1; break;
         case 'media': workloadRAM = 2; break;
@@ -196,15 +196,15 @@ function calculateRAM() {
         default: workloadRAM = 1;
     }
     total += workloadRAM;
-    // Add VM overhead after workload baseline
+    // Apply VM overhead
     if (vmExtra > 0) total += vmExtra;
 
-    // 4. CONCURRENT USERS
+    // Users
     let userRAM = numUsers * 0.25;
     userRAM = Math.min(userRAM, 4);
     total += userRAM;
 
-    // 5. INTERNET & SECURITY OVERHEAD
+    // Security
     let securityRAM = 0;
     if (internetConnected === 'yes') securityRAM += 0.5;
     if (remoteAccess === 'port-forward') securityRAM += 0.5;
@@ -213,10 +213,10 @@ function calculateRAM() {
     else if (botProtection === 'advanced') securityRAM += 1;
     total += securityRAM;
 
-    // 6. CALCULATE THREE TIER RECOMMENDATIONS
+    // Tiers
     const tiers = [1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 56, 64, 70, 80, 90, 120, 128];
 
-    // Tier 1: Minimum Safe
+    // Min Safe
     let minSafeRAM = tiers[0];
     for (let tier of tiers) {
         if (total <= tier) {
@@ -226,7 +226,7 @@ function calculateRAM() {
     }
     minSafeRAM = Math.min(maxRAM, minSafeRAM);
 
-    // Tier 2: Recommended
+    // Recommended
     let rawTotal = total;
     let recommendedTotal = total * 1.15;
     if ((recommendedTotal - rawTotal) < 1) {
@@ -241,7 +241,7 @@ function calculateRAM() {
     }
     recommendedRAM = Math.min(maxRAM, recommendedRAM);
 
-    // Tier 3: For Growth
+    // For Growth
     let growthTotal = recommendedTotal * 1.3;
     let growthRAM = tiers[0];
     for (let tier of tiers) {
@@ -259,7 +259,7 @@ function calculateRAM() {
     if (recRAMField) recRAMField.value = recommendedRAM.toFixed(0);
     if (ramTierField) ramTierField.value = recommendedRAM > 32 ? 'premium' : (recommendedRAM > 8 ? 'mid' : 'budget');
 
-    // Generate performance notes
+    // Notes
     let notes = [];
     if (numUsers > 10) notes.push('High concurrent users - verify this count is accurate');
     if (primaryUse === 'vm') notes.push('VM host - +20GB VM overhead applied for guest allocations');
@@ -267,9 +267,9 @@ function calculateRAM() {
     if (primaryUse === 'media' && remoteAccess === 'tunnel') notes.push('Transcoding over VPN will be slower - consider balanced priority');
     if (usableStorage > 50000) notes.push('Very large storage - monitor pool health regularly');
     if (botProtection === 'advanced' && primaryUse === 'backup') notes.push('Advanced scanning may be overkill for pure backup storage');
-    const notesText = notes.length > 0 ? notes.join(' ') : 'Configuration is conservative and well-balanced.';
+    const notesText = notes.length > 0 ? notes.join('<br>') : 'Configuration is conservative and well-balanced.';
 
-    // Update recommendation card
+    // Update recommendation
     const recRAMBig = document.getElementById('recommended-ram-big');
     const recText = document.getElementById('recommendation-text');
     if (recRAMBig) recRAMBig.textContent = formatCapacity(recommendedRAM);
@@ -280,7 +280,7 @@ function calculateRAM() {
         recText.textContent = upgradeMsg;
     }
 
-    // Update summary cards
+    // Update summary
     const sumCurrent = document.getElementById('summary-current');
     const sumStorage = document.getElementById('summary-storage');
     const sumUsable = document.getElementById('summary-usable');
@@ -290,9 +290,9 @@ function calculateRAM() {
     if (sumStorage) sumStorage.textContent = formatCapacity(totalStorage);
     if (sumUsable) sumUsable.textContent = formatCapacity(usableStorage);
     if (sumCost) sumCost.textContent = `$${estimatedCost.toFixed(2)}`;
-    if (sumNotes) sumNotes.textContent = notesText;
+    if (sumNotes) sumNotes.innerHTML = notesText;
 
-    // Update RAM visualizer
+    // Visualizer
     const additionalNeeded = Math.max(0, recommendedRAM - currentRAM);
     if (maxRAM > 0) {
         const currentPercent = (currentRAM / maxRAM) * 100;
@@ -312,7 +312,7 @@ function calculateRAM() {
         if (ramTotalDisplay) ramTotalDisplay.textContent = formatCapacity(recommendedRAM);
     }
 
-    // Display other tiers below RAM usage
+    // Show tiers
     const tierDisplay = document.getElementById('tier-display');
     if (tierDisplay) {
         tierDisplay.innerHTML = `
@@ -442,14 +442,14 @@ function clearOldConfigs() {
     document.getElementById('recommendation-text').textContent = 'Enter values to see recommendation';
 }
 
-// Load saved configs on page load
+// Init on load
 window.addEventListener('load', function() {
     displaySavedConfigs();
     console.log('Page loaded - script.js initialized');
     initializeTutorial();
 });
 
-// Tutorial functionality
+// Tutorial
 let currentTutorialStep = 0;
 
 const tutorialSteps = [
@@ -471,7 +471,7 @@ const tutorialSteps = [
 ];
 
 function initializeTutorial() {
-    // Check if user has seen tutorial before
+    // Check tutorial seen
     if (!localStorage.getItem('tutorialComplete')) {
         showTutorial();
     }
@@ -489,12 +489,12 @@ function showTutorial() {
 function updateTutorialStep() {
     const step = tutorialSteps[currentTutorialStep];
     
-    // Update content
+    // Update tutorial content
     document.getElementById('tutorial-title').textContent = step.title;
     document.getElementById('tutorial-text').textContent = step.text;
     document.getElementById('tutorial-highlight').textContent = step.highlight;
     
-    // Update dots
+    // Tutorial dots
     const dotsContainer = document.getElementById('tutorial-dots');
     dotsContainer.innerHTML = '';
     tutorialSteps.forEach((_, idx) => {
@@ -503,7 +503,7 @@ function updateTutorialStep() {
         dotsContainer.appendChild(dot);
     });
     
-    // Update button text
+    // Button text
     const nextBtn = document.querySelector('.tutorial-btn-primary');
     if (nextBtn) {
         nextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Got it!' : 'Next';
