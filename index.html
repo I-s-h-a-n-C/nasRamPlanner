@@ -4,163 +4,344 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NAS RAM Planner</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>NAS RAM Planner</h1>
+    <p style="text-align: center; color: #94a3b8; margin: -20px 0 40px 0; padding: 0; background: none; border: none;">Plan your NAS upgrade with confidence</p>
     
-    <div>
-        <h2>NAS Configuration</h2>
-        
-        <label for="nas-model">NAS Model:</label>
-        <input type="text" id="nas-model" placeholder="e.g., Synology DS920+" />
-
-        <label for="current-ram">Current RAM (GB):</label>
-        <input type="number" id="current-ram" placeholder="e.g., 4" />
-        
-        <label for="max-ram">Maximum Supported RAM (GB):</label>
-        <input type="number" id="max-ram" placeholder="e.g., 32" />
+    <!-- Quick Presets -->
+    <div class="presets-container">
+        <h2>Quick Start</h2>
+        <div class="preset-grid">
+            <button class="preset-card" onclick="loadPreset('home')">
+                <img src="" alt="Home NAS" class="preset-icon" />
+                <div class="preset-name">Home NAS</div>
+                <div class="preset-desc">2-4 drives, backup & media</div>
+            </button>
+            <button class="preset-card" onclick="loadPreset('media')">
+                <img src="" alt="Media Server" class="preset-icon" />
+                <div class="preset-name">Media Server</div>
+                <div class="preset-desc">4+ drives, streaming</div>
+            </button>
+            <button class="preset-card" onclick="loadPreset('vm')">
+                <img src="" alt="VM Host" class="preset-icon" />
+                <div class="preset-name">VM Host</div>
+                <div class="preset-desc">Heavy compute workload</div>
+            </button>
+            <button class="preset-card" onclick="loadPreset('enterprise')">
+                <img src="" alt="Enterprise" class="preset-icon" />
+                <div class="preset-name">Enterprise</div>
+                <div class="preset-desc">High availability setup</div>
+            </button>
+        </div>
     </div>
 
-    <div>
-        <h2>Storage Information</h2>
-        
-        <label for="num-drives">Number of Drives:</label>
-        <input type="number" id="num-drives" placeholder="e.g., 4" />
-        
-        <label for="drive-capacity">Drive Capacity (GB):</label>
-        <input type="number" id="drive-capacity" placeholder="e.g., 2000" />
-        
-        <label for="raid-type">RAID Type:</label>
-        <select id="raid-type">
-            <option value="">Select RAID Type</option>
-            <option value="raid0">RAID 0</option>
-            <option value="raid1">RAID 1</option>
-            <option value="raid5">RAID 5</option>
-            <option value="raid6">RAID 6</option>
-            <option value="raid10">RAID 10</option>
-        </select>
+    <!-- Main Configuration Grid -->
+    <div class="config-grid">
+        <!-- Hardware Section -->
+        <div>
+            <h2>Hardware</h2>
+            
+            <label for="nas-model">NAS Model</label>
+            <input type="text" id="nas-model" placeholder="e.g., Synology DS920+" oninput="calculateRAM()" />
+
+            <label for="current-ram">Current RAM</label>
+            <input type="number" id="current-ram" placeholder="4" oninput="calculateRAM()" />
+            
+            <label for="max-ram">Max Supported RAM</label>
+            <input type="number" id="max-ram" placeholder="32" oninput="calculateRAM()" />
+
+            <label for="cpu-cores">CPU Cores</label>
+            <input type="number" id="cpu-cores" placeholder="4" oninput="calculateRAM()" />
+        </div>
+
+        <!-- Storage Section -->
+        <div>
+            <h2>Storage</h2>
+            
+            <label for="num-drives">Number of Drives</label>
+            <input type="number" id="num-drives" placeholder="4" oninput="calculateRAM()" />
+            
+            <label for="drive-capacity">Drive Capacity (GB)</label>
+            <input type="number" id="drive-capacity" placeholder="2000" oninput="calculateRAM()" />
+            
+            <label for="raid-type">RAID Type</label>
+            <select id="raid-type" onchange="calculateRAM()">
+                <option value="">Select RAID</option>
+                <option value="raid0">RAID 0</option>
+                <option value="raid1">RAID 1</option>
+                <option value="raid5">RAID 5</option>
+                <option value="raid6">RAID 6</option>
+                <option value="raid10">RAID 10</option>
+            </select>
+        </div>
+
+        <!-- Workload Section -->
+        <div>
+            <h2>Workload</h2>
+            
+            <label for="primary-use">Primary Use Case</label>
+            <select id="primary-use" onchange="calculateRAM()">
+                <option value="">Select Use Case</option>
+                <option value="backup">Backup Storage</option>
+                <option value="media">Media Server</option>
+                <option value="vm">Virtual Machines</option>
+                <option value="database">Database</option>
+                <option value="mixed">Mixed Workload</option>
+            </select>
+            
+            <label for="num-users">Concurrent Users</label>
+            <input type="number" id="num-users" placeholder="5" oninput="calculateRAM()" />
+
+            <label for="os-type">Operating System</label>
+            <select id="os-type" onchange="calculateRAM()">
+                <option value="">Select OS</option>
+                <option value="synology">Synology DSM</option>
+                <option value="unraid">Unraid</option>
+                <option value="truenas">TrueNAS</option>
+                <option value="openmediavault">OpenMediaVault</option>
+                <option value="ubuntu">Ubuntu Server</option>
+                <option value="custom">Custom Linux</option>
+            </select>
+        </div>
+
+        <!-- Preferences Section -->
+        <div>
+            <h2>Preferences</h2>
+            
+            <label for="priority">Priority</label>
+            <select id="priority" onchange="calculateRAM()">
+                <option value="balanced">Balanced</option>
+                <option value="cost">Cost Effective</option>
+                <option value="performance">Performance</option>
+            </select>
+
+            <label for="internet-connected">Internet Connected</label>
+            <select id="internet-connected" onchange="calculateRAM()">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+
+            <label for="budget">Budget ($)</label>
+            <input type="number" id="budget" placeholder="200" oninput="calculateRAM()" />
+
+            <label for="network-speed">Network Speed</label>
+            <select id="network-speed" onchange="calculateRAM()">
+                <option value="">Select Speed</option>
+                <option value="1">1 Gbps</option>
+                <option value="2.5">2.5 Gbps</option>
+                <option value="10">10 Gbps</option>
+                <option value="25">25 Gbps</option>
+            </select>
+
+            <label for="remote-access">Remote Access Method <a href="https://en.wikipedia.org/wiki/Tunneling_protocol" target="_blank" title="Learn more about tunneling vs port forwarding">ⓘ</a></label>
+            <select id="remote-access" onchange="calculateRAM()">
+                <option value="none">None</option>
+                <option value="port-forward">Port Forwarding</option>
+                <option value="tunnel">Tunneling (VPN/SSH)</option>
+            </select>
+
+            <label for="bot-protection">Bot/Malware Protection <a href="https://en.wikipedia.org/wiki/Zip_bomb" target="_blank" title="Learn about zip bomb protection">ⓘ</a></label>
+            <select id="bot-protection" onchange="calculateRAM()">
+                <option value="none">None</option>
+                <option value="basic">Basic Scanning</option>
+                <option value="advanced">Advanced Protection</option>
+            </select>
+        </div>
     </div>
 
-    <div>
-        <h2>Usage Scenarios</h2>
-        
-        <label for="num-users">Number of Concurrent Users:</label>
-        <input type="number" id="num-users" placeholder="e.g., 5" />
-        
-        <label for="primary-use">Primary Use Case:</label>
-        <select id="primary-use">
-            <option value="">Select Use Case</option>
-            <option value="backup">Backup Storage</option>
-            <option value="media">Media Server</option>
-            <option value="vm">Virtual Machines</option>
-            <option value="database">Database</option>
-            <option value="mixed">Mixed Workload</option>
-        </select>
-        
-        <label for="avg-file-size">Average File Size (MB):</label>
-        <input type="number" id="avg-file-size" placeholder="e.g., 100" />
+    <!-- Results Section -->
+    <div class="results-container">
+        <!-- Recommendation Card -->
+        <div class="recommendation-card">
+            <h2>Recommendation</h2>
+            <div class="recommendation-box">
+                <div class="ram-big-number" id="recommended-ram-big">0GB</div>
+                <div class="recommendation-detail">
+                    <span id="recommendation-text">Enter values to see recommendation</span>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="calculateRAM()">Calculate</button>
+                <button onclick="resetForm()" style="background-color: #64748b;">Reset</button>
+            </div>
+        </div>
+
+        <!-- Visualization Card -->
+        <div class="visualization-card">
+            <h2>RAM Usage</h2>
+            
+            <div class="ram-visualizer">
+                <div class="ram-label">Total Capacity vs Need</div>
+                <div class="ram-bar">
+                    <div class="ram-current" id="ram-used-bar" style="width: 0%">
+                        <span id="ram-used-text">0GB</span>
+                    </div>
+                    <div class="ram-recommended" id="ram-needed-bar" style="width: 0%">
+                        <span id="ram-needed-text">0GB</span>
+                    </div>
+                </div>
+                
+                <div class="ram-stats">
+                    <div>Total Capacity: <strong id="ram-max-display">0GB</strong></div>
+                    <div>Total Need: <strong id="ram-total-display">0GB</strong></div>
+                </div>
+                
+                <div class="ram-legend">
+                    <div class="legend-item">
+                        <div class="legend-color color-current"></div>
+                        <span>Current RAM</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color color-recommended"></div>
+                        <span>Additional Needed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div>
-        <h2>System Performance</h2>
-        
-        <label for="cpu-cores">CPU Cores:</label>
-        <input type="number" id="cpu-cores" placeholder="e.g., 4" />
-        
-        <label for="network-speed">Network Speed (Gbps):</label>
-        <select id="network-speed">
-            <option value="">Select Network Speed</option>
-            <option value="1">1 Gbps</option>
-            <option value="2.5">2.5 Gbps</option>
-            <option value="10">10 Gbps</option>
-            <option value="25">25 Gbps</option>
-        </select>
-        
-        <label for="os-type">NAS Operating System:</label>
-        <select id="os-type">
-            <option value="">Select OS</option>
-            <option value="synology">Synology DSM</option>
-            <option value="unraid">Unraid</option>
-            <option value="truenas">TrueNAS</option>
-            <option value="openmediavault">OpenMediaVault</option>
-            <option value="custom">Custom Linux</option>
-        </select>
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <img src="" alt="Current Setup" class="summary-icon" />
+            <div class="summary-label">Current Setup</div>
+            <div class="summary-value" id="summary-current">0GB / 0GB</div>
+        </div>
+        <div class="summary-card">
+            <img src="" alt="Total Storage" class="summary-icon" />
+            <div class="summary-label">Total Storage</div>
+            <div class="summary-value" id="summary-storage">0GB</div>
+        </div>
+        <div class="summary-card">
+            <img src="" alt="Est. Cost" class="summary-icon" />
+            <div class="summary-label">Est. Cost</div>
+            <div class="summary-value" id="summary-cost">$0</div>
+        </div>
+        <div class="summary-card">
+            <img src="" alt="Usable Storage" class="summary-icon" />
+            <div class="summary-label">Usable (After RAID)</div>
+            <div class="summary-value" id="summary-usable">0GB</div>
+        </div>
     </div>
 
-    <div>
-        <h2>Budget & Preferences</h2>
-        
-        <label for="budget">Budget ($):</label>
-        <input type="number" id="budget" placeholder="e.g., 200" />
-        
-        <label for="priority">Priority:</label>
-        <select id="priority">
-            <option value="">Select Priority</option>
-            <option value="cost">Cost Effective</option>
-            <option value="performance">Performance</option>
-            <option value="balanced">Balanced</option>
-        </select>
+    <!-- Notes Card -->
+    <div class="notes-card">
+        <h2>Configuration Notes</h2>
+        <p id="summary-notes" style="margin-bottom: 0;">Configuration notes will appear here</p>
     </div>
 
-    <div>
-        <h2>Recommendation</h2>
-        
-        <label for="recommended-ram">Recommended RAM (GB):</label>
-        <input type="number" id="recommended-ram" disabled placeholder="Calculated value" />
-        
-        <label for="ram-tier">RAM Tier:</label>
-        <select id="ram-tier" disabled>
-            <option value="">Select Tier</option>
-            <option value="budget">Budget</option>
-            <option value="mid">Mid-Range</option>
-            <option value="premium">Premium</option>
-        </select>
-        
-        <button onclick="calculateRAM()">Calculate RAM Recommendation</button>
-        <button onclick="resetForm()">Reset Form</button>
-    </div>
-
-    <div>
-        <h2>Summary</h2>
-        
-        <p>
-            <strong>Current Setup:</strong> <span id="summary-current"></span>
-        </p>
-        
-        <p>
-            <strong>Total Storage Capacity:</strong> <span id="summary-storage"></span>
-        </p>
-
-        <p>
-            <strong>Usable Storage (After RAID):</strong> <span id="summary-usable"></span>
-        </p>
-        
-        <p>
-            <strong>Recommended Upgrade:</strong> <span id="summary-recommendation"></span>
-        </p>
-
-        <p>
-            <strong>Estimated Cost:</strong> <span id="summary-cost"></span>
-        </p>
-
-        <p>
-            <strong>Performance Notes:</strong> <span id="summary-notes"></span>
-        </p>
-    </div>
-
-    <div>
+    <!-- Saved Configs -->
+    <div class="saved-configs-card">
         <h2>Saved Configurations</h2>
-        <button onclick="saveConfiguration()">Save Current Config</button>
-        <button onclick="loadConfiguration()">Load Previous Config</button>
-        <div id="saved-configs"></div>
+        <div class="button-group">
+            <button onclick="saveConfiguration()" style="background-color: #10b981;">Save Config</button>
+            <button onclick="loadConfiguration()" style="background-color: #3b82f6;">Load Latest</button>
+        </div>
+        <div id="saved-configs" style="margin-top: 15px;"></div>
     </div>
 
     <script>
+        // Preset configurations
+        const presets = {
+            home: {
+                nasModel: 'Home NAS',
+                currentRAM: '4',
+                maxRAM: '16',
+                numDrives: '4',
+                driveCapacity: '2000',
+                raidType: 'raid5',
+                primaryUse: 'backup',
+                numUsers: '3',
+                cpuCores: '4',
+                osType: 'synology',
+                priority: 'balanced',
+                networkSpeed: '1',
+                internetConnected: 'yes',
+                remoteAccess: 'port-forward',
+                botProtection: 'basic'
+            },
+            media: {
+                nasModel: 'Media Server',
+                currentRAM: '8',
+                maxRAM: '32',
+                numDrives: '6',
+                driveCapacity: '4000',
+                raidType: 'raid6',
+                primaryUse: 'media',
+                numUsers: '8',
+                cpuCores: '6',
+                osType: 'unraid',
+                priority: 'performance',
+                networkSpeed: '2.5',
+                internetConnected: 'yes',
+                remoteAccess: 'tunnel',
+                botProtection: 'advanced'
+            },
+            vm: {
+                nasModel: 'VM Host',
+                currentRAM: '16',
+                maxRAM: '64',
+                numDrives: '4',
+                driveCapacity: '2000',
+                raidType: 'raid10',
+                primaryUse: 'vm',
+                numUsers: '1',
+                cpuCores: '12',
+                osType: 'truenas',
+                priority: 'performance',
+                networkSpeed: '10',
+                internetConnected: 'yes',
+                remoteAccess: 'tunnel',
+                botProtection: 'advanced'
+            },
+            enterprise: {
+                nasModel: 'Enterprise NAS',
+                currentRAM: '32',
+                maxRAM: '128',
+                numDrives: '12',
+                driveCapacity: '8000',
+                raidType: 'raid6',
+                primaryUse: 'database',
+                numUsers: '20',
+                cpuCores: '16',
+                osType: 'truenas',
+                priority: 'performance',
+                networkSpeed: '10',
+                internetConnected: 'yes',
+                remoteAccess: 'tunnel',
+                botProtection: 'advanced'
+            }
+        };
+
+        function loadPreset(presetName) {
+            const preset = presets[presetName];
+            document.getElementById('nas-model').value = preset.nasModel;
+            document.getElementById('current-ram').value = preset.currentRAM;
+            document.getElementById('max-ram').value = preset.maxRAM;
+            document.getElementById('num-drives').value = preset.numDrives;
+            document.getElementById('drive-capacity').value = preset.driveCapacity;
+            document.getElementById('raid-type').value = preset.raidType;
+            document.getElementById('primary-use').value = preset.primaryUse;
+            document.getElementById('num-users').value = preset.numUsers;
+            document.getElementById('cpu-cores').value = preset.cpuCores;
+            document.getElementById('os-type').value = preset.osType;
+            document.getElementById('priority').value = preset.priority;
+            document.getElementById('network-speed').value = preset.networkSpeed;
+            document.getElementById('internet-connected').value = preset.internetConnected;
+            document.getElementById('remote-access').value = preset.remoteAccess;
+            document.getElementById('bot-protection').value = preset.botProtection;
+            document.getElementById('budget').value = '';
+            calculateRAM();
+        }
+
         // RAM pricing estimates (per GB)
         const ramPrices = {
-            budget: 50,      // Budget DDR4
-            mid: 80,         // Standard DDR4
-            premium: 150     // High-end DDR5
+            budget: 50,
+            mid: 80,
+            premium: 150
         };
 
         function getRAIDUsableCapacity(total, numDrives, raidType) {
@@ -197,6 +378,9 @@
             const raidType = document.getElementById('raid-type').value;
             const priority = document.getElementById('priority').value || 'balanced';
             const osType = document.getElementById('os-type').value;
+            const internetConnected = document.getElementById('internet-connected').value || 'yes';
+            const remoteAccess = document.getElementById('remote-access').value || 'none';
+            const botProtection = document.getElementById('bot-protection').value || 'none';
 
             let recommendedRAM = currentRAM;
 
@@ -228,6 +412,26 @@
             // OS base requirement
             if (osType === 'unraid') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 6));
             if (osType === 'truenas') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 8));
+            if (osType === 'ubuntu') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 4));
+
+            // Internet connectivity adjustment
+            if (internetConnected === 'yes') {
+                recommendedRAM = Math.min(maxRAM, recommendedRAM + 2);
+            }
+
+            // Remote access method adjustment
+            if (remoteAccess === 'port-forward') {
+                recommendedRAM = Math.min(maxRAM, recommendedRAM + 1);
+            } else if (remoteAccess === 'tunnel') {
+                recommendedRAM = Math.min(maxRAM, recommendedRAM + 3);
+            }
+
+            // Bot/Malware protection adjustment
+            if (botProtection === 'basic') {
+                recommendedRAM = Math.min(maxRAM, recommendedRAM + 1);
+            } else if (botProtection === 'advanced') {
+                recommendedRAM = Math.min(maxRAM, recommendedRAM + 4);
+            }
 
             // Priority adjustment
             if (priority === 'cost') {
@@ -251,23 +455,49 @@
 
             // Generate performance notes
             let notes = [];
-            if (numUsers > 10) notes.push('High user count detected');
-            if (primaryUse === 'vm') notes.push('VM workload requires consistent RAM');
-            if (raidType === 'raid0') notes.push('RAID 0 offers no redundancy');
-            if (raidType === 'raid6') notes.push('RAID 6 provides excellent protection');
-            if (totalStorage > 50000) notes.push('Very large storage - monitor RAM usage');
-            const notesText = notes.length > 0 ? notes.join('; ') : 'Configuration looks good';
+            if (numUsers > 10) notes.push('🔴 High user count - ensure sufficient RAM for concurrent users');
+            if (primaryUse === 'vm') notes.push('🖥️ VM workload - consistent RAM allocation is critical');
+            if (raidType === 'raid0') notes.push('⚠️ RAID 0 offers no redundancy - consider RAID 5/6');
+            if (raidType === 'raid6') notes.push('✅ RAID 6 provides excellent protection');
+            if (totalStorage > 50000) notes.push('📈 Very large storage - monitor RAM usage closely');
+            if (currentRAM > recommendedRAM) notes.push('✅ Current RAM exceeds recommendation');
+            if (internetConnected === 'yes') notes.push('🌐 Internet connected - overhead for remote access services');
+            if (remoteAccess === 'tunnel') notes.push('🔒 Tunneling adds encryption overhead');
+            if (botProtection === 'advanced') notes.push('🛡️ Advanced protection requires significant resources');
+            const notesText = notes.length > 0 ? notes.join(' ') : '✅ Configuration looks good!';
 
-            // Update summary
+            // Update recommendation card
+            document.getElementById('recommended-ram-big').textContent = `${recommendedRAM.toFixed(0)}GB`;
+            const upgradeMsg = recommendedRAM > currentRAM 
+                ? `Upgrade by ${(recommendedRAM - currentRAM).toFixed(0)}GB`
+                : 'Your RAM is sufficient';
+            document.getElementById('recommendation-text').textContent = upgradeMsg;
+
+            // Update summary cards
             document.getElementById('summary-current').textContent = `${currentRAM}GB / ${maxRAM}GB`;
             document.getElementById('summary-storage').textContent = `${totalStorage}GB`;
-            document.getElementById('summary-usable').textContent = `${usableStorage.toFixed(0)}GB (${raidType || 'N/A'})`;
-            document.getElementById('summary-recommendation').textContent = 
-                recommendedRAM > currentRAM 
-                    ? `+${(recommendedRAM - currentRAM).toFixed(0)}GB (Total: ${recommendedRAM.toFixed(0)}GB)`
-                    : 'Current RAM is sufficient';
+            document.getElementById('summary-usable').textContent = `${usableStorage.toFixed(0)}GB`;
             document.getElementById('summary-cost').textContent = `$${estimatedCost.toFixed(2)}`;
             document.getElementById('summary-notes').textContent = notesText;
+
+            // Update RAM visualizer
+            const totalRAMNeed = recommendedRAM;
+            const additionalNeeded = Math.max(0, recommendedRAM - currentRAM);
+            
+            if (maxRAM > 0) {
+                const currentPercent = (currentRAM / maxRAM) * 100;
+                const additionalPercent = (additionalNeeded / maxRAM) * 100;
+
+                document.getElementById('ram-used-bar').style.width = Math.min(100, currentPercent) + '%';
+                document.getElementById('ram-used-text').textContent = `${currentRAM}GB`;
+                
+                document.getElementById('ram-needed-bar').style.width = Math.min(100, additionalPercent) + '%';
+                document.getElementById('ram-needed-text').textContent = additionalNeeded > 0 ? `+${additionalNeeded.toFixed(0)}GB` : '';
+                
+                document.getElementById('ram-max-display').textContent = `${maxRAM}GB`;
+                document.getElementById('ram-total-display').textContent = `${totalRAMNeed.toFixed(0)}GB`;
+            }
+
         }
 
         function saveConfiguration() {
@@ -283,6 +513,9 @@
                 cpuCores: document.getElementById('cpu-cores').value,
                 networkSpeed: document.getElementById('network-speed').value,
                 osType: document.getElementById('os-type').value,
+                internetConnected: document.getElementById('internet-connected').value,
+                remoteAccess: document.getElementById('remote-access').value,
+                botProtection: document.getElementById('bot-protection').value,
                 recommendedRAM: document.getElementById('recommended-ram').value,
                 timestamp: new Date().toLocaleString()
             };
@@ -314,6 +547,9 @@
             document.getElementById('cpu-cores').value = config.cpuCores;
             document.getElementById('network-speed').value = config.networkSpeed;
             document.getElementById('os-type').value = config.osType;
+            document.getElementById('internet-connected').value = config.internetConnected || 'yes';
+            document.getElementById('remote-access').value = config.remoteAccess || 'none';
+            document.getElementById('bot-protection').value = config.botProtection || 'none';
             
             calculateRAM();
         }
@@ -350,6 +586,9 @@
             document.getElementById('os-type').value = '';
             document.getElementById('budget').value = '';
             document.getElementById('priority').value = '';
+            document.getElementById('internet-connected').value = 'yes';
+            document.getElementById('remote-access').value = 'none';
+            document.getElementById('bot-protection').value = 'none';
             document.getElementById('recommended-ram').value = '';
             document.getElementById('ram-tier').value = '';
             document.getElementById('summary-current').textContent = '';
