@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAS RAM Planner</title>
+</head>
+<body>
+    <h1>NAS RAM Planner</h1>
+    
+    <div>
+        <h2>NAS Configuration</h2>
+        
+        <label for="nas-model">NAS Model:</label>
+        <input type="text" id="nas-model" placeholder="e.g., Synology DS920+" />
+
+        <label for="current-ram">Current RAM (GB):</label>
+        <input type="number" id="current-ram" placeholder="e.g., 4" />
+        
+        <label for="max-ram">Maximum Supported RAM (GB):</label>
+        <input type="number" id="max-ram" placeholder="e.g., 32" />
+    </div>
+
+    <div>
+        <h2>Storage Information</h2>
+        
+        <label for="num-drives">Number of Drives:</label>
+        <input type="number" id="num-drives" placeholder="e.g., 4" />
+        
+        <label for="drive-capacity">Drive Capacity (GB):</label>
+        <input type="number" id="drive-capacity" placeholder="e.g., 2000" />
+        
+        <label for="raid-type">RAID Type:</label>
+        <select id="raid-type">
+            <option value="">Select RAID Type</option>
+            <option value="raid0">RAID 0</option>
+            <option value="raid1">RAID 1</option>
+            <option value="raid5">RAID 5</option>
+            <option value="raid6">RAID 6</option>
+            <option value="raid10">RAID 10</option>
+        </select>
+    </div>
+
+    <div>
+        <h2>Usage Scenarios</h2>
+        
+        <label for="num-users">Number of Concurrent Users:</label>
+        <input type="number" id="num-users" placeholder="e.g., 5" />
+        
+        <label for="primary-use">Primary Use Case:</label>
+        <select id="primary-use">
+            <option value="">Select Use Case</option>
+            <option value="backup">Backup Storage</option>
+            <option value="media">Media Server</option>
+            <option value="vm">Virtual Machines</option>
+            <option value="database">Database</option>
+            <option value="mixed">Mixed Workload</option>
+        </select>
+        
+        <label for="avg-file-size">Average File Size (MB):</label>
+        <input type="number" id="avg-file-size" placeholder="e.g., 100" />
+    </div>
+
+    <div>
+        <h2>Recommendation</h2>
+        
+        <label for="recommended-ram">Recommended RAM (GB):</label>
+        <input type="number" id="recommended-ram" disabled placeholder="Calculated value" />
+        
+        <button onclick="calculateRAM()">Calculate RAM Recommendation</button>
+    </div>
+
+    <div>
+        <h2>Summary</h2>
+        
+        <p>
+            <strong>Current Setup:</strong> <span id="summary-current"></span>
+        </p>
+        
+        <p>
+            <strong>Total Storage Capacity:</strong> <span id="summary-storage"></span>
+        </p>
+        
+        <p>
+            <strong>Recommended Upgrade:</strong> <span id="summary-recommendation"></span>
+        </p>
+    </div>
+
+    <script>
+        function calculateRAM() {
+            const currentRAM = parseFloat(document.getElementById('current-ram').value) || 0;
+            const maxRAM = parseFloat(document.getElementById('max-ram').value) || 0;
+            const numDrives = parseInt(document.getElementById('num-drives').value) || 0;
+            const driveCapacity = parseInt(document.getElementById('drive-capacity').value) || 0;
+            const primaryUse = document.getElementById('primary-use').value;
+            const numUsers = parseInt(document.getElementById('num-users').value) || 1;
+
+            let recommendedRAM = currentRAM;
+
+            // Base recommendation based on use case
+            if (primaryUse === 'backup') {
+                recommendedRAM = Math.min(maxRAM, 8);
+            } else if (primaryUse === 'media') {
+                recommendedRAM = Math.min(maxRAM, 16);
+            } else if (primaryUse === 'vm') {
+                recommendedRAM = Math.min(maxRAM, 32);
+            } else if (primaryUse === 'database') {
+                recommendedRAM = Math.min(maxRAM, 32);
+            } else if (primaryUse === 'mixed') {
+                recommendedRAM = Math.min(maxRAM, 24);
+            }
+
+            // Adjust for number of users
+            recommendedRAM = Math.min(maxRAM, recommendedRAM + (numUsers * 2));
+
+            // Adjust for storage size
+            const totalStorage = numDrives * driveCapacity;
+            if (totalStorage > 20000) {
+                recommendedRAM = Math.min(maxRAM, recommendedRAM + 8);
+            }
+
+            document.getElementById('recommended-ram').value = recommendedRAM.toFixed(0);
+
+            // Update summary
+            document.getElementById('summary-current').textContent = `${currentRAM}GB / ${maxRAM}GB`;
+            document.getElementById('summary-storage').textContent = `${totalStorage}GB`;
+            document.getElementById('summary-recommendation').textContent = 
+                recommendedRAM > currentRAM 
+                    ? `+${(recommendedRAM - currentRAM).toFixed(0)}GB (Total: ${recommendedRAM.toFixed(0)}GB)`
+                    : 'Current RAM is sufficient';
+        }
+    </script>
+</body>
+</html>
