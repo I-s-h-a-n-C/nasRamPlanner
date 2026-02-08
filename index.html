@@ -62,12 +62,62 @@
     </div>
 
     <div>
+        <h2>System Performance</h2>
+        
+        <label for="cpu-cores">CPU Cores:</label>
+        <input type="number" id="cpu-cores" placeholder="e.g., 4" />
+        
+        <label for="network-speed">Network Speed (Gbps):</label>
+        <select id="network-speed">
+            <option value="">Select Network Speed</option>
+            <option value="1">1 Gbps</option>
+            <option value="2.5">2.5 Gbps</option>
+            <option value="10">10 Gbps</option>
+            <option value="25">25 Gbps</option>
+        </select>
+        
+        <label for="os-type">NAS Operating System:</label>
+        <select id="os-type">
+            <option value="">Select OS</option>
+            <option value="synology">Synology DSM</option>
+            <option value="unraid">Unraid</option>
+            <option value="truenas">TrueNAS</option>
+            <option value="openmediavault">OpenMediaVault</option>
+            <option value="custom">Custom Linux</option>
+        </select>
+    </div>
+
+    <div>
+        <h2>Budget & Preferences</h2>
+        
+        <label for="budget">Budget ($):</label>
+        <input type="number" id="budget" placeholder="e.g., 200" />
+        
+        <label for="priority">Priority:</label>
+        <select id="priority">
+            <option value="">Select Priority</option>
+            <option value="cost">Cost Effective</option>
+            <option value="performance">Performance</option>
+            <option value="balanced">Balanced</option>
+        </select>
+    </div>
+
+    <div>
         <h2>Recommendation</h2>
         
         <label for="recommended-ram">Recommended RAM (GB):</label>
         <input type="number" id="recommended-ram" disabled placeholder="Calculated value" />
         
+        <label for="ram-tier">RAM Tier:</label>
+        <select id="ram-tier" disabled>
+            <option value="">Select Tier</option>
+            <option value="budget">Budget</option>
+            <option value="mid">Mid-Range</option>
+            <option value="premium">Premium</option>
+        </select>
+        
         <button onclick="calculateRAM()">Calculate RAM Recommendation</button>
+        <button onclick="resetForm()">Reset Form</button>
     </div>
 
     <div>
@@ -80,13 +130,62 @@
         <p>
             <strong>Total Storage Capacity:</strong> <span id="summary-storage"></span>
         </p>
+
+        <p>
+            <strong>Usable Storage (After RAID):</strong> <span id="summary-usable"></span>
+        </p>
         
         <p>
             <strong>Recommended Upgrade:</strong> <span id="summary-recommendation"></span>
         </p>
+
+        <p>
+            <strong>Estimated Cost:</strong> <span id="summary-cost"></span>
+        </p>
+
+        <p>
+            <strong>Performance Notes:</strong> <span id="summary-notes"></span>
+        </p>
+    </div>
+
+    <div>
+        <h2>Saved Configurations</h2>
+        <button onclick="saveConfiguration()">Save Current Config</button>
+        <button onclick="loadConfiguration()">Load Previous Config</button>
+        <div id="saved-configs"></div>
     </div>
 
     <script>
+        // RAM pricing estimates (per GB)
+        const ramPrices = {
+            budget: 50,      // Budget DDR4
+            mid: 80,         // Standard DDR4
+            premium: 150     // High-end DDR5
+        };
+
+        function getRAIDUsableCapacity(total, numDrives, raidType) {
+            const driveSize = total / numDrives;
+            switch(raidType) {
+                case 'raid0': return total;
+                case 'raid1': return driveSize;
+                case 'raid5': return driveSize * (numDrives - 1);
+                case 'raid6': return driveSize * (numDrives - 2);
+                case 'raid10': return (driveSize * numDrives) / 2;
+                default: return total;
+            }
+        }
+
+        function estimateRAMPrice(recommendedRAM, priority) {
+            const currentRAM = parseFloat(document.getElementById('current-ram').value) || 0;
+            const ramNeeded = Math.max(0, recommendedRAM - currentRAM);
+            
+            let pricePerGB = ramPrices.mid;
+            if (priority === 'cost') pricePerGB = ramPrices.budget;
+            if (priority === 'performance') pricePerGB = ramPrices.premium;
+            
+            return ramNeeded * pricePerGB;
+        }
+
         function calculateRAM() {
             const currentRAM = parseFloat(document.getElementById('current-ram').value) || 0;
             const maxRAM = parseFloat(document.getElementById('max-ram').value) || 0;
@@ -94,6 +193,10 @@
             const driveCapacity = parseInt(document.getElementById('drive-capacity').value) || 0;
             const primaryUse = document.getElementById('primary-use').value;
             const numUsers = parseInt(document.getElementById('num-users').value) || 1;
+            const cpuCores = parseInt(document.getElementById('cpu-cores').value) || 2;
+            const raidType = document.getElementById('raid-type').value;
+            const priority = document.getElementById('priority').value || 'balanced';
+            const osType = document.getElementById('os-type').value;
 
             let recommendedRAM = currentRAM;
 
@@ -113,22 +216,152 @@
             // Adjust for number of users
             recommendedRAM = Math.min(maxRAM, recommendedRAM + (numUsers * 2));
 
+            // Adjust for CPU cores
+            recommendedRAM = Math.min(maxRAM, recommendedRAM + (cpuCores / 2));
+
             // Adjust for storage size
             const totalStorage = numDrives * driveCapacity;
             if (totalStorage > 20000) {
                 recommendedRAM = Math.min(maxRAM, recommendedRAM + 8);
             }
 
+            // OS base requirement
+            if (osType === 'unraid') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 6));
+            if (osType === 'truenas') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 8));
+
+            // Priority adjustment
+            if (priority === 'cost') {
+                recommendedRAM = Math.max(8, recommendedRAM * 0.8);
+            } else if (priority === 'performance') {
+                recommendedRAM = Math.min(maxRAM, recommendedRAM * 1.2);
+            }
+
+            recommendedRAM = Math.min(maxRAM, recommendedRAM);
+
+            // Determine RAM tier
+            let ramTier = 'budget';
+            if (recommendedRAM > 16) ramTier = 'premium';
+            else if (recommendedRAM > 8) ramTier = 'mid';
+
+            const estimatedCost = estimateRAMPrice(recommendedRAM, priority);
+            const usableStorage = getRAIDUsableCapacity(totalStorage, numDrives, raidType);
+
             document.getElementById('recommended-ram').value = recommendedRAM.toFixed(0);
+            document.getElementById('ram-tier').value = ramTier;
+
+            // Generate performance notes
+            let notes = [];
+            if (numUsers > 10) notes.push('High user count detected');
+            if (primaryUse === 'vm') notes.push('VM workload requires consistent RAM');
+            if (raidType === 'raid0') notes.push('RAID 0 offers no redundancy');
+            if (raidType === 'raid6') notes.push('RAID 6 provides excellent protection');
+            if (totalStorage > 50000) notes.push('Very large storage - monitor RAM usage');
+            const notesText = notes.length > 0 ? notes.join('; ') : 'Configuration looks good';
 
             // Update summary
             document.getElementById('summary-current').textContent = `${currentRAM}GB / ${maxRAM}GB`;
             document.getElementById('summary-storage').textContent = `${totalStorage}GB`;
+            document.getElementById('summary-usable').textContent = `${usableStorage.toFixed(0)}GB (${raidType || 'N/A'})`;
             document.getElementById('summary-recommendation').textContent = 
                 recommendedRAM > currentRAM 
                     ? `+${(recommendedRAM - currentRAM).toFixed(0)}GB (Total: ${recommendedRAM.toFixed(0)}GB)`
                     : 'Current RAM is sufficient';
+            document.getElementById('summary-cost').textContent = `$${estimatedCost.toFixed(2)}`;
+            document.getElementById('summary-notes').textContent = notesText;
         }
+
+        function saveConfiguration() {
+            const config = {
+                nasModel: document.getElementById('nas-model').value,
+                currentRAM: document.getElementById('current-ram').value,
+                maxRAM: document.getElementById('max-ram').value,
+                numDrives: document.getElementById('num-drives').value,
+                driveCapacity: document.getElementById('drive-capacity').value,
+                raidType: document.getElementById('raid-type').value,
+                primaryUse: document.getElementById('primary-use').value,
+                numUsers: document.getElementById('num-users').value,
+                cpuCores: document.getElementById('cpu-cores').value,
+                networkSpeed: document.getElementById('network-speed').value,
+                osType: document.getElementById('os-type').value,
+                recommendedRAM: document.getElementById('recommended-ram').value,
+                timestamp: new Date().toLocaleString()
+            };
+
+            let configs = JSON.parse(localStorage.getItem('nasConfigs')) || [];
+            configs.push(config);
+            localStorage.setItem('nasConfigs', JSON.stringify(configs));
+            
+            displaySavedConfigs();
+            alert('Configuration saved!');
+        }
+
+        function loadConfiguration() {
+            const configs = JSON.parse(localStorage.getItem('nasConfigs')) || [];
+            if (configs.length === 0) {
+                alert('No saved configurations found');
+                return;
+            }
+
+            const config = configs[configs.length - 1];
+            document.getElementById('nas-model').value = config.nasModel;
+            document.getElementById('current-ram').value = config.currentRAM;
+            document.getElementById('max-ram').value = config.maxRAM;
+            document.getElementById('num-drives').value = config.numDrives;
+            document.getElementById('drive-capacity').value = config.driveCapacity;
+            document.getElementById('raid-type').value = config.raidType;
+            document.getElementById('primary-use').value = config.primaryUse;
+            document.getElementById('num-users').value = config.numUsers;
+            document.getElementById('cpu-cores').value = config.cpuCores;
+            document.getElementById('network-speed').value = config.networkSpeed;
+            document.getElementById('os-type').value = config.osType;
+            
+            calculateRAM();
+        }
+
+        function displaySavedConfigs() {
+            const configs = JSON.parse(localStorage.getItem('nasConfigs')) || [];
+            const container = document.getElementById('saved-configs');
+            
+            if (configs.length === 0) {
+                container.innerHTML = '<p>No saved configurations</p>';
+                return;
+            }
+
+            let html = '<p>Latest Configs:</p><ul>';
+            configs.slice(-3).forEach((config, idx) => {
+                html += `<li>${config.nasModel || 'Unknown'} - ${config.recommendedRAM}GB RAM - ${config.timestamp}</li>`;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        function resetForm() {
+            document.getElementById('nas-model').value = '';
+            document.getElementById('current-ram').value = '';
+            document.getElementById('max-ram').value = '';
+            document.getElementById('num-drives').value = '';
+            document.getElementById('drive-capacity').value = '';
+            document.getElementById('raid-type').value = '';
+            document.getElementById('primary-use').value = '';
+            document.getElementById('num-users').value = '';
+            document.getElementById('avg-file-size').value = '';
+            document.getElementById('cpu-cores').value = '';
+            document.getElementById('network-speed').value = '';
+            document.getElementById('os-type').value = '';
+            document.getElementById('budget').value = '';
+            document.getElementById('priority').value = '';
+            document.getElementById('recommended-ram').value = '';
+            document.getElementById('ram-tier').value = '';
+            document.getElementById('summary-current').textContent = '';
+            document.getElementById('summary-storage').textContent = '';
+            document.getElementById('summary-usable').textContent = '';
+            document.getElementById('summary-recommendation').textContent = '';
+            document.getElementById('summary-cost').textContent = '';
+            document.getElementById('summary-notes').textContent = '';
+        }
+
+        // Load saved configs on page load
+        window.addEventListener('load', displaySavedConfigs);
     </script>
 </body>
 </html>
