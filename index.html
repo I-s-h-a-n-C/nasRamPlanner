@@ -7,6 +7,25 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay" class="tutorial-overlay">
+        <div class="tutorial-modal">
+            <div class="tutorial-header">
+                <h2 id="tutorial-title">Welcome to NAS RAM Planner</h2>
+                <button class="tutorial-close" onclick="closeTutorial()">×</button>
+            </div>
+            <div class="tutorial-content">
+                <p id="tutorial-text">Let's get you started with planning your NAS upgrade!</p>
+                <div class="tutorial-highlight" id="tutorial-highlight"></div>
+            </div>
+            <div class="tutorial-footer">
+                <button class="tutorial-btn-secondary" onclick="closeTutorial()">Skip</button>
+                <div class="tutorial-dots" id="tutorial-dots"></div>
+                <button class="tutorial-btn-primary" onclick="nextTutorialStep()">Next</button>
+            </div>
+        </div>
+    </div>
+
     <h1>NAS RAM Planner</h1>
     <p style="text-align: center; color: #94a3b8; margin: -20px 0 40px 0; padding: 0; background: none; border: none;">Plan your NAS upgrade with confidence</p>
     
@@ -224,7 +243,7 @@
         </div>
         <div class="summary-card">
             <img src="cost.png" alt="Est. Cost" class="summary-icon" />
-            <div class="summary-label">Est. Cost</div>
+            <div class="summary-label">Estimated Cost of RAM</div>
             <div class="summary-value" id="summary-cost">$0</div>
         </div>
         <div class="summary-card">

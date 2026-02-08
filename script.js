@@ -101,11 +101,14 @@ function loadPreset(presetName) {
     calculateRAM();
 }
 
-// RAM pricing estimates (per GB)
+// RAM pricing estimates (per 16GB)
+// DDR3: $40 per 16GB
+// DDR4: $60 per 16GB
+// DDR5: $100 per 16GB
 const ramPrices = {
-    budget: 50,
-    mid: 80,
-    premium: 150
+    ddr3: 40,
+    ddr4: 60,
+    ddr5: 100
 };
 
 function getRAIDUsableCapacity(total, numDrives, raidType) {
@@ -122,15 +125,16 @@ function getRAIDUsableCapacity(total, numDrives, raidType) {
     }
 }
 
-function estimateRAMPrice(recommendedRAM, priority) {
+function estimateRAMPrice(recommendedRAM, ddrType) {
     const currentRAM = parseFloat(document.getElementById('current-ram').value) || 0;
     const ramNeeded = Math.max(0, recommendedRAM - currentRAM);
     
-    let pricePerGB = ramPrices.mid;
-    if (priority === 'cost') pricePerGB = ramPrices.budget;
-    if (priority === 'performance') pricePerGB = ramPrices.premium;
+    // Get price per 16GB for the DDR type
+    const pricePerSixteenGB = ramPrices[ddrType] || ramPrices.ddr4;
     
-    return ramNeeded * pricePerGB;
+    // Calculate cost based on 16GB chunks
+    const cost = (ramNeeded / 16) * pricePerSixteenGB;
+    return cost;
 }
 
 function calculateRAM() {
@@ -225,7 +229,7 @@ function calculateRAM() {
     if (recommendedRAM > 16) ramTier = 'premium';
     else if (recommendedRAM > 8) ramTier = 'mid';
 
-    const estimatedCost = estimateRAMPrice(recommendedRAM, priority);
+    const estimatedCost = estimateRAMPrice(recommendedRAM, ddrType);
     const usableStorage = getRAIDUsableCapacity(totalStorage, numDrives, raidType);
 
     // Update hidden fields
@@ -237,16 +241,16 @@ function calculateRAM() {
 
     // Generate performance notes
     let notes = [];
-    if (numUsers > 10) notes.push('🔴 High user count - ensure sufficient RAM for concurrent users');
-    if (primaryUse === 'vm') notes.push('🖥️ VM workload - consistent RAM allocation is critical');
-    if (raidType === 'raid0') notes.push('⚠️ RAID 0 offers no redundancy - consider RAID 5/6');
-    if (raidType === 'raid6') notes.push('✅ RAID 6 provides excellent protection');
-    if (totalStorage > 50000) notes.push('📈 Very large storage - monitor RAM usage closely');
-    if (currentRAM > recommendedRAM) notes.push('✅ Current RAM exceeds recommendation');
-    if (internetConnected === 'yes') notes.push('🌐 Internet connected - overhead for remote access services');
-    if (remoteAccess === 'tunnel') notes.push('🔒 Tunneling adds encryption overhead');
-    if (botProtection === 'advanced') notes.push('🛡️ Advanced protection requires significant resources');
-    const notesText = notes.length > 0 ? notes.join(' ') : '✅ Configuration looks good!';
+    if (numUsers > 10) notes.push('High user count - ensure sufficient RAM for concurrent users');
+    if (primaryUse === 'vm') notes.push('VM workload - consistent RAM allocation is critical');
+    if (raidType === 'raid0') notes.push('RAID 0 offers no redundancy - consider RAID 5/6');
+    if (raidType === 'raid6') notes.push('RAID 6 provides excellent protection');
+    if (totalStorage > 50000) notes.push('Very large storage - monitor RAM usage closely');
+    if (currentRAM > recommendedRAM) notes.push('Current RAM exceeds recommendation');
+    if (internetConnected === 'yes') notes.push('Internet connected - overhead for remote access services');
+    if (remoteAccess === 'tunnel') notes.push('Tunneling adds encryption overhead');
+    if (botProtection === 'advanced') notes.push('Advanced protection requires significant resources');
+    const notesText = notes.length > 0 ? notes.join(' ') : 'Configuration looks good!';
 
     // Update recommendation card
     const recRAMBig = document.getElementById('recommended-ram-big');
@@ -406,5 +410,100 @@ function resetForm() {
 // Load saved configs on page load
 window.addEventListener('load', function() {
     displaySavedConfigs();
-    console.log('Page loaded - app.js initialized');
+    console.log('Page loaded - script.js initialized');
+    initializeTutorial();
 });
+
+// Tutorial functionality
+let currentTutorialStep = 0;
+
+const tutorialSteps = [
+    {
+        title: 'Welcome to NAS RAM Planner',
+        text: 'This tool helps you determine the optimal RAM configuration for your NAS setup. Let\'s start by exploring the Quick Start presets!',
+        highlight: 'Click on any preset to load a pre-configured NAS setup'
+    },
+    {
+        title: 'Choose a Preset',
+        text: 'We have 4 preset configurations: Home NAS (smallest), Media Server, VM Host, and Enterprise (largest). Each represents a different use case.',
+        highlight: 'Try clicking on "Home NAS" to see how it fills in all the settings automatically'
+    },
+    {
+        title: 'Adjust Your Configuration',
+        text: 'Once you\'ve loaded a preset, you can customize any setting: adjust CPU cores, add users, change RAID type, etc.',
+        highlight: 'All changes are calculated in real-time, so you\'ll see results as you type'
+    },
+    {
+        title: 'View Your Recommendations',
+        text: 'The Recommendation card shows your optimal RAM amount. The RAM Usage visualization shows current vs needed RAM.',
+        highlight: 'The summary cards display total storage, usable capacity, and estimated cost'
+    },
+    {
+        title: 'Save & Load Configurations',
+        text: 'Click "Save Config" to store your setup in browser storage. Use "Load Latest" to restore your last saved configuration.',
+        highlight: 'Your configurations are stored locally and persist between sessions'
+    },
+    {
+        title: 'You\'re Ready!',
+        text: 'You now know the basics! Feel free to explore all the options. Each setting affects your RAM recommendation.',
+        highlight: 'Pro tip: Try different priority levels (Cost, Balanced, Performance) to see how they impact your recommendation'
+    }
+];
+
+function initializeTutorial() {
+    // Check if user has seen tutorial before
+    if (!localStorage.getItem('tutorialComplete')) {
+        showTutorial();
+    }
+}
+
+function showTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        currentTutorialStep = 0;
+        updateTutorialStep();
+    }
+}
+
+function updateTutorialStep() {
+    const step = tutorialSteps[currentTutorialStep];
+    
+    // Update content
+    document.getElementById('tutorial-title').textContent = step.title;
+    document.getElementById('tutorial-text').textContent = step.text;
+    document.getElementById('tutorial-highlight').textContent = step.highlight;
+    
+    // Update dots
+    const dotsContainer = document.getElementById('tutorial-dots');
+    dotsContainer.innerHTML = '';
+    tutorialSteps.forEach((_, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'tutorial-dot' + (idx === currentTutorialStep ? ' active' : '');
+        dotsContainer.appendChild(dot);
+    });
+    
+    // Update button text
+    const nextBtn = document.querySelector('.tutorial-btn-primary');
+    if (nextBtn) {
+        nextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Got it!' : 'Next';
+    }
+}
+
+function nextTutorialStep() {
+    currentTutorialStep++;
+    
+    if (currentTutorialStep >= tutorialSteps.length) {
+        closeTutorial();
+    } else {
+        updateTutorialStep();
+    }
+}
+
+function closeTutorial() {
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        localStorage.setItem('tutorialComplete', 'true');
+    }
+}

@@ -4,10 +4,137 @@
     box-sizing: border-box;
 }
 
+/* Tutorial Styles */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.tutorial-overlay.hidden {
+    display: none;
+}
+
+.tutorial-modal {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 30px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: none;
+}
+
+.tutorial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.tutorial-header h2 {
+    margin: 0;
+    color: #e2e8f0;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.tutorial-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.tutorial-close:hover {
+    color: #cbd5e1;
+}
+
+.tutorial-content {
+    margin-bottom: 25px;
+}
+
+#tutorial-text {
+    color: #cbd5e1;
+    font-size: 0.95em;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+}
+
+.tutorial-highlight {
+    padding: 12px;
+    background-color: transparent;
+    border-radius: 0;
+    color: #cbd5e1;
+    font-size: 0.85em;
+    margin: 0;
+}
+
+.tutorial-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.tutorial-btn-primary,
+.tutorial-btn-secondary {
+    padding: 8px 16px;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+.tutorial-btn-primary {
+    background-color: #06b6d4;
+    border-color: #06b6d4;
+    color: #0f172a;
+}
+
+.tutorial-btn-primary:hover {
+    background-color: #22d3ee;
+    border-color: #22d3ee;
+}
+
+.tutorial-btn-secondary:hover {
+    background-color: #1e293b;
+    border-color: #64748b;
+}
+
+.tutorial-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.tutorial-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #475569;
+}
+
+.tutorial-dot.active {
+    background-color: #06b6d4;
+    width: 16px;
+    border-radius: 3px;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: #e2e8f0;
+    background: #0f172a;
+    color: #cbd5e1;
     padding: 40px 20px;
     line-height: 1.6;
     min-height: 100vh;
@@ -16,21 +143,17 @@ body {
 h1 {
     text-align: center;
     margin-bottom: 10px;
-    color: #f1f5f9;
-    font-size: 2.5em;
-    font-weight: 700;
-    letter-spacing: -1px;
+    color: #e2e8f0;
+    font-size: 2em;
+    font-weight: 400;
 }
 
 h2 {
     margin-top: 0;
-    margin-bottom: 20px;
-    color: #f1f5f9;
-    font-size: 1.2em;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    opacity: 0.95;
+    margin-bottom: 15px;
+    color: #e2e8f0;
+    font-size: 1em;
+    font-weight: 400;
 }
 
 /* Presets */
@@ -52,21 +175,19 @@ h2 {
 
 .preset-card {
     background-color: transparent;
-    border: 1px solid #334155;
-    border-radius: 4px;
-    padding: 15px;
+    border: 1px solid #475569;
+    border-radius: 0;
+    padding: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    color: #e2e8f0;
+    color: #cbd5e1;
     text-align: center;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .preset-card:hover {
-    border-color: #06b6d4;
-    box-shadow: none;
-    background-color: rgba(6, 182, 212, 0.05);
+    border-color: #7f8ba8;
+    background-color: transparent;
 }
 
 .preset-icon {
@@ -78,14 +199,14 @@ h2 {
 }
 
 .preset-name {
-    font-weight: 600;
-    font-size: 1em;
-    margin-bottom: 8px;
-    color: #22d3ee;
+    font-weight: 400;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+    color: #cbd5e1;
 }
 
 .preset-desc {
-    font-size: 0.8em;
+    font-size: 0.75em;
     color: #94a3b8;
 }
 
@@ -133,23 +254,21 @@ input[type="text"],
 input[type="number"],
 select {
     width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
+    padding: 8px;
+    margin-bottom: 12px;
     border: 1px solid #475569;
-    border-radius: 6px;
-    font-size: 14px;
-    background-color: #0f172a;
-    color: #f1f5f9;
-    transition: all 0.3s ease;
+    border-radius: 0;
+    font-size: 13px;
+    background-color: #1e293b;
+    color: #cbd5e1;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus {
     outline: none;
-    border-color: #06b6d4;
-    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
-    background-color: #0f172a;
+    border-color: #7f8ba8;
+    background-color: #1e293b;
 }
 
 input[type="number"][disabled] {
@@ -165,38 +284,30 @@ select[disabled] {
 }
 
 button {
-    background-color: #06b6d4;
-    color: #0f172a;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 6px;
+    background-color: #1e293b;
+    color: #cbd5e1;
+    padding: 8px 16px;
+    border: 1px solid #475569;
+    border-radius: 0;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    margin-right: 10px;
+    font-size: 13px;
+    font-weight: 400;
+    margin-right: 8px;
     margin-top: 10px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 button:hover {
-    background-color: #22d3ee;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
-}
-
-button:active {
-    transform: translateY(0);
+    background-color: #334155;
+    border-color: #7f8ba8;
 }
 
 p {
     margin-bottom: 12px;
-    padding: 15px;
-    background-color: #0f172a;
-    border-left: 4px solid #06b6d4;
-    border-radius: 4px;
-    font-size: 0.95em;
+    padding: 12px;
+    background-color: transparent;
+    border-radius: 0;
+    font-size: 0.9em;
+    color: #cbd5e1;
 }
 
 p:last-child {
@@ -204,63 +315,59 @@ p:last-child {
 }
 
 p strong {
-    color: #22d3ee;
-    font-weight: 600;
+    color: #cbd5e1;
+    font-weight: 500;
 }
 
 /* RAM Visualizer */
 .ram-visualizer {
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #0f172a;
-    border-radius: 6px;
-    border: 1px solid #334155;
+    margin-top: 15px;
+    padding: 12px;
+    background-color: transparent;
+    border-radius: 0;
+    border: 1px solid #475569;
 }
 
 .ram-bar {
     width: 100%;
-    height: 40px;
-    background-color: #334155;
-    border-radius: 6px;
+    height: 30px;
+    background-color: #1e293b;
+    border-radius: 0;
     overflow: hidden;
-    margin-bottom: 20px;
-    border: 2px solid #475569;
+    margin-bottom: 12px;
+    border: 1px solid #475569;
     display: flex;
 }
 
 .ram-current {
     height: 100%;
-    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-    transition: width 0.5s ease;
+    background: #10b981;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 700;
-    font-size: 13px;
+    font-weight: 400;
+    font-size: 12px;
     min-width: 50px;
 }
 
 .ram-recommended {
     height: 100%;
-    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
-    transition: width 0.5s ease;
+    background: #f59e0b;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 700;
-    font-size: 13px;
+    font-weight: 400;
+    font-size: 12px;
     min-width: 0;
 }
 
 .ram-label {
     font-size: 12px;
     color: #94a3b8;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+    margin-bottom: 8px;
+    font-weight: 400;
 }
 
 .ram-stats {
@@ -329,10 +436,8 @@ p strong {
     padding: 12px 0;
     background-color: transparent;
     border-radius: 0;
-    border-left: 3px solid #06b6d4;
     color: #cbd5e1;
     font-size: 0.95em;
-    padding-left: 12px;
 }
 
 /* Results Container */
@@ -443,7 +548,6 @@ p strong {
 .notes-card {
     background-color: transparent;
     border: none;
-    border-left: 4px solid #f59e0b;
     border-radius: 0;
     padding: 25px 0;
     margin-bottom: 40px;
