@@ -1,10 +1,19 @@
+// Format capacity as GB or TB
+function formatCapacity(gb) {
+    const numGb = parseFloat(gb);
+    if (numGb >= 1000) {
+        return (numGb / 1024).toFixed(1) + 'TB';
+    }
+    return Math.round(numGb) + 'GB';
+}
+
 // Preset configurations
 const presets = {
     home: {
         nasModel: 'Home NAS',
         currentRAM: '4',
         maxRAM: '16',
-        numDrives: '4',
+        numDrives: '2',
         driveCapacity: '2000',
         raidType: 'raid5',
         primaryUse: 'backup',
@@ -22,7 +31,7 @@ const presets = {
         nasModel: 'Media Server',
         currentRAM: '8',
         maxRAM: '32',
-        numDrives: '6',
+        numDrives: '4',
         driveCapacity: '4000',
         raidType: 'raid6',
         primaryUse: 'media',
@@ -146,121 +155,168 @@ function calculateRAM() {
     const driveCapacity = parseInt(document.getElementById('drive-capacity').value) || 0;
     const primaryUse = document.getElementById('primary-use').value;
     const numUsers = parseInt(document.getElementById('num-users').value) || 1;
-    const cpuCores = parseInt(document.getElementById('cpu-cores').value) || 2;
     const raidType = document.getElementById('raid-type').value;
-    const priority = document.getElementById('priority').value || 'balanced';
     const osType = document.getElementById('os-type').value;
     const internetConnected = document.getElementById('internet-connected').value || 'yes';
     const remoteAccess = document.getElementById('remote-access').value || 'none';
     const botProtection = document.getElementById('bot-protection').value || 'none';
     const ddrType = document.getElementById('ddr-type').value || 'ddr4';
 
-    let recommendedRAM = 8;
+    let total = 0;
 
-    // Base recommendation based on use case
-    if (primaryUse === 'backup') {
-        recommendedRAM = 8;
-    } else if (primaryUse === 'media') {
-        recommendedRAM = 16;
-    } else if (primaryUse === 'vm') {
-        recommendedRAM = 32;
-    } else if (primaryUse === 'database') {
-        recommendedRAM = 32;
-    } else if (primaryUse === 'mixed') {
-        recommendedRAM = 24;
+    // 1️⃣ BASE OS REQUIREMENT
+    let baseOS = 2.5;
+    switch(osType) {
+        case 'synology': baseOS = 2.5; break;
+        case 'openmediavault': baseOS = 2; break;
+        case 'unraid': baseOS = 3; break;
+        case 'truenas': baseOS = 6; break;
+        case 'ubuntu': baseOS = 2; break;
+        case 'custom': baseOS = 2; break;
+        default: baseOS = 2.5;
+    }
+    total += baseOS;
+
+    // 2️⃣ STORAGE OVERHEAD
+    // Per drive overhead
+    let storageOverhead = numDrives * 0.4;
+    
+    // RAID overhead
+    switch(raidType) {
+        case 'raid1': storageOverhead += 0.5; break;
+        case 'raid5': storageOverhead += 1; break;
+        case 'raid6': storageOverhead += 1.5; break;
+        case 'raid10': storageOverhead += 1; break;
+        default: break;
     }
     
-    recommendedRAM = Math.min(maxRAM, recommendedRAM);
-
-    // Adjust for number of users
-    recommendedRAM = Math.min(maxRAM, recommendedRAM + (numUsers * 2));
-
-    // Adjust for CPU cores
-    recommendedRAM = Math.min(maxRAM, recommendedRAM + (cpuCores / 2));
-
-    // Adjust for storage size
+    // Large storage adjustment (only if > 20TB usable)
     const totalStorage = numDrives * driveCapacity;
-    if (totalStorage > 20000) {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM + 8);
+    const usableStorage = getRAIDUsableCapacity(totalStorage, numDrives, raidType);
+    if (usableStorage > 20000) {
+        const excessTB = Math.floor((usableStorage - 20000) / 1000);
+        storageOverhead += Math.ceil(excessTB / 10);
     }
+    total += storageOverhead;
 
-    // OS base requirement
-    if (osType === 'unraid') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 6));
-    if (osType === 'truenas') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 8));
-    if (osType === 'ubuntu') recommendedRAM = Math.min(maxRAM, Math.max(recommendedRAM, 4));
+    // 3️⃣ WORKLOAD RAM
+    let workloadRAM = 0;
+    switch(primaryUse) {
+        case 'backup':
+            workloadRAM = 1;
+            break;
+        case 'media':
+            workloadRAM = 2; // Direct play only, no transcoding
+            break;
+        case 'database':
+            workloadRAM = 2;
+            break;
+        case 'vm':
+            workloadRAM = 2; // Hypervisor overhead (user would add VM-specific RAM separately)
+            break;
+        case 'mixed':
+            workloadRAM = 2;
+            break;
+        default:
+            workloadRAM = 1;
+    }
+    total += workloadRAM;
 
-    // Internet connectivity adjustment
+    // 4️⃣ CONCURRENT USERS
+    let userRAM = numUsers * 0.25;
+    userRAM = Math.min(userRAM, 4); // Cap at +4GB unless enterprise
+    total += userRAM;
+
+    // 5️⃣ INTERNET & SECURITY OVERHEAD
+    let securityRAM = 0;
+    
     if (internetConnected === 'yes') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM + 2);
+        securityRAM += 0.5;
     }
-
-    // Remote access method adjustment
+    
     if (remoteAccess === 'port-forward') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM + 1);
+        securityRAM += 0.5;
     } else if (remoteAccess === 'tunnel') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM + 3);
+        securityRAM += 0.5; // Light overhead for VPN/SSH
     }
-
-    // Bot/Malware protection adjustment
+    
     if (botProtection === 'basic') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM + 1);
+        securityRAM += 0.5;
     } else if (botProtection === 'advanced') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM + 4);
+        securityRAM += 1;
     }
+    total += securityRAM;
 
-    // DDR Type adjustment (DDR5 more efficient, DDR3 less efficient)
-    if (ddrType === 'ddr3') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM * 1.15);
-    } else if (ddrType === 'ddr5') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM * 0.9);
+    // 6️⃣ CALCULATE THREE TIER RECOMMENDATIONS
+    const tiers = [1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 56, 64, 70, 80, 90, 120, 128];
+    
+    // Tier 1: Minimum Safe (raw total without safety buffer)
+    let minSafeRAM = tiers[0];
+    for (let tier of tiers) {
+        if (total <= tier) {
+            minSafeRAM = tier;
+            break;
+        }
     }
-
-    // Priority adjustment
-    if (priority === 'cost') {
-        recommendedRAM = Math.max(8, recommendedRAM * 0.8);
-    } else if (priority === 'performance') {
-        recommendedRAM = Math.min(maxRAM, recommendedRAM * 1.2);
+    minSafeRAM = Math.min(maxRAM, minSafeRAM);
+    
+    // Tier 2: Recommended (with 1.15× safety buffer)
+    let rawTotal = total;
+    let recommendedTotal = total * 1.15;
+    
+    // Enforce minimum +1GB buffer
+    if ((recommendedTotal - rawTotal) < 1) {
+        recommendedTotal = rawTotal + 1;
     }
-
+    
+    let recommendedRAM = tiers[0];
+    for (let tier of tiers) {
+        if (recommendedTotal <= tier) {
+            recommendedRAM = tier;
+            break;
+        }
+    }
     recommendedRAM = Math.min(maxRAM, recommendedRAM);
-
-    // Determine RAM tier
-    let ramTier = 'budget';
-    if (recommendedRAM > 16) ramTier = 'premium';
-    else if (recommendedRAM > 8) ramTier = 'mid';
+    
+    // Tier 3: For Growth (additional 30% for future expansion)
+    let growthTotal = recommendedTotal * 1.3;
+    let growthRAM = tiers[0];
+    for (let tier of tiers) {
+        if (growthTotal <= tier) {
+            growthRAM = tier;
+            break;
+        }
+    }
+    growthRAM = Math.min(maxRAM, growthRAM);
 
     const estimatedCost = estimateRAMPrice(recommendedRAM, ddrType);
-    const usableStorage = getRAIDUsableCapacity(totalStorage, numDrives, raidType);
 
     // Update hidden fields
     const recRAMField = document.getElementById('recommended-ram');
     const ramTierField = document.getElementById('ram-tier');
     
     if (recRAMField) recRAMField.value = recommendedRAM.toFixed(0);
-    if (ramTierField) ramTierField.value = ramTier;
+    if (ramTierField) ramTierField.value = recommendedRAM > 32 ? 'premium' : (recommendedRAM > 8 ? 'mid' : 'budget');
 
     // Generate performance notes
     let notes = [];
-    if (numUsers > 10) notes.push('High user count - ensure sufficient RAM for concurrent users');
-    if (primaryUse === 'vm') notes.push('VM workload - consistent RAM allocation is critical');
-    if (raidType === 'raid0') notes.push('RAID 0 offers no redundancy - consider RAID 5/6');
-    if (raidType === 'raid6') notes.push('RAID 6 provides excellent protection');
-    if (totalStorage > 50000) notes.push('Very large storage - monitor RAM usage closely');
-    if (currentRAM > recommendedRAM) notes.push('Current RAM exceeds recommendation');
-    if (internetConnected === 'yes') notes.push('Internet connected - overhead for remote access services');
-    if (remoteAccess === 'tunnel') notes.push('Tunneling adds encryption overhead');
-    if (botProtection === 'advanced') notes.push('Advanced protection requires significant resources');
-    const notesText = notes.length > 0 ? notes.join(' ') : 'Configuration looks good!';
+    if (numUsers > 10) notes.push('High concurrent users - verify this count is accurate');
+    if (primaryUse === 'vm') notes.push('VM host - remember to add RAM for allocated virtual machines');
+    if (raidType === 'raid0') notes.push('RAID 0 has no redundancy - data loss if any drive fails');
+    if (primaryUse === 'media' && remoteAccess === 'tunnel') notes.push('Transcoding over VPN will be slower - consider balanced priority');
+    if (usableStorage > 50000) notes.push('Very large storage - monitor pool health regularly');
+    if (botProtection === 'advanced' && primaryUse === 'backup') notes.push('Advanced scanning may be overkill for pure backup storage');
+    const notesText = notes.length > 0 ? notes.join(' ') : 'Configuration is conservative and well-balanced.';
 
-    // Update recommendation card
+    // Update recommendation card with recommended tier only
     const recRAMBig = document.getElementById('recommended-ram-big');
     const recText = document.getElementById('recommendation-text');
     
-    if (recRAMBig) recRAMBig.textContent = `${recommendedRAM.toFixed(0)}GB`;
+    if (recRAMBig) recRAMBig.textContent = formatCapacity(recommendedRAM);
     if (recText) {
         const upgradeMsg = recommendedRAM > currentRAM 
-            ? `Upgrade by ${(recommendedRAM - currentRAM).toFixed(0)}GB`
-            : 'Your RAM is sufficient';
+            ? `Upgrade by ${recommendedRAM - currentRAM}GB`
+            : 'Your current RAM is sufficient';
         recText.textContent = upgradeMsg;
     }
 
@@ -272,13 +328,12 @@ function calculateRAM() {
     const sumNotes = document.getElementById('summary-notes');
     
     if (sumCurrent) sumCurrent.textContent = `${currentRAM}GB / ${maxRAM}GB`;
-    if (sumStorage) sumStorage.textContent = `${totalStorage}GB`;
-    if (sumUsable) sumUsable.textContent = `${usableStorage.toFixed(0)}GB`;
+    if (sumStorage) sumStorage.textContent = formatCapacity(totalStorage);
+    if (sumUsable) sumUsable.textContent = formatCapacity(usableStorage);
     if (sumCost) sumCost.textContent = `$${estimatedCost.toFixed(2)}`;
     if (sumNotes) sumNotes.textContent = notesText;
 
     // Update RAM visualizer
-    const totalRAMNeed = recommendedRAM;
     const additionalNeeded = Math.max(0, recommendedRAM - currentRAM);
     
     if (maxRAM > 0) {
@@ -293,16 +348,33 @@ function calculateRAM() {
         const ramTotalDisplay = document.getElementById('ram-total-display');
         
         if (ramUsedBar) ramUsedBar.style.width = Math.min(100, currentPercent) + '%';
-        if (ramUsedText) ramUsedText.textContent = `${currentRAM}GB`;
+        if (ramUsedText) ramUsedText.textContent = formatCapacity(currentRAM);
         
         if (ramNeededBar) ramNeededBar.style.width = Math.min(100, additionalPercent) + '%';
-        if (ramNeededText) ramNeededText.textContent = additionalNeeded > 0 ? `+${additionalNeeded.toFixed(0)}GB` : '';
+        if (ramNeededText) ramNeededText.textContent = additionalNeeded > 0 ? `+${additionalNeeded}GB` : '';
         
-        if (ramMaxDisplay) ramMaxDisplay.textContent = `${maxRAM}GB`;
-        if (ramTotalDisplay) ramTotalDisplay.textContent = `${totalRAMNeed.toFixed(0)}GB`;
+        if (ramMaxDisplay) ramMaxDisplay.textContent = formatCapacity(maxRAM);
+        if (ramTotalDisplay) ramTotalDisplay.textContent = formatCapacity(recommendedRAM);
     }
     
-    console.log('Recommended RAM:', recommendedRAM, 'GB');
+    // Display other tiers below RAM usage
+    const tierDisplay = document.getElementById('tier-display');
+    if (tierDisplay) {
+        tierDisplay.innerHTML = `
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px;">
+                <div style="flex: 1; padding: 8px; border: 1px solid #475569; text-align: center; font-size: 0.85em;">
+                    <div style="color: #94a3b8; margin-bottom: 2px;">Minimum Safe</div>
+                    <div style="font-weight: bold;">${formatCapacity(minSafeRAM)}</div>
+                </div>
+                <div style="flex: 1; padding: 8px; border: 1px solid #475569; text-align: center; font-size: 0.85em;">
+                    <div style="color: #94a3b8; margin-bottom: 2px;">For Growth</div>
+                    <div style="font-weight: bold;">${formatCapacity(growthRAM)}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    console.log('Conservative calculation - Recommended RAM:', recommendedRAM, 'GB');
 }
 
 function saveConfiguration() {
