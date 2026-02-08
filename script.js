@@ -329,6 +329,7 @@ function calculateRAM() {
 }
 
 function saveConfiguration() {
+    const recommendedText = document.getElementById('recommended-ram-big').textContent;
     const config = {
         nasModel: document.getElementById('nas-model').value,
         currentRAM: document.getElementById('current-ram').value,
@@ -345,7 +346,7 @@ function saveConfiguration() {
         remoteAccess: document.getElementById('remote-access').value,
         botProtection: document.getElementById('bot-protection').value,
         ddrType: document.getElementById('ddr-type').value,
-        recommendedRAM: document.getElementById('recommended-ram').value,
+        recommendedRAM: recommendedText,
         timestamp: new Date().toLocaleString()
     };
 
@@ -450,34 +451,19 @@ let currentTutorialStep = 0;
 
 const tutorialSteps = [
     {
-        title: 'Welcome to NAS RAM Planner',
-        text: 'This tool helps you determine the optimal RAM configuration for your NAS setup. Let\'s start by exploring the Quick Start presets!',
-        highlight: 'Click on any preset to load a pre-configured NAS setup'
+        title: 'Welcome',
+        text: 'This tool calculates your optimal NAS RAM configuration.',
+        highlight: 'Click any preset or enter your own values to get started'
     },
     {
-        title: 'Choose a Preset',
-        text: 'We have 4 preset configurations: Home NAS (smallest), Media Server, VM Host, and Enterprise (largest). Each represents a different use case.',
-        highlight: 'Try clicking on "Home NAS" to see how it fills in all the settings automatically'
+        title: 'Fill Your Setup',
+        text: 'Enter your hardware specs, storage, and workload details.',
+        highlight: 'Everything calculates in real-time as you type'
     },
     {
-        title: 'Adjust Your Configuration',
-        text: 'Once you\'ve loaded a preset, you can customize any setting: adjust CPU cores, add users, change RAID type, etc.',
-        highlight: 'All changes are calculated in real-time, so you\'ll see results as you type'
-    },
-    {
-        title: 'View Your Recommendations',
-        text: 'The Recommendation card shows your optimal RAM amount. The RAM Usage visualization shows current vs needed RAM.',
-        highlight: 'The summary cards display total storage, usable capacity, and estimated cost'
-    },
-    {
-        title: 'Save & Load Configurations',
-        text: 'Click "Save Config" to store your setup in browser storage. Use "Load Latest" to restore your last saved configuration.',
-        highlight: 'Your configurations are stored locally and persist between sessions'
-    },
-    {
-        title: 'You\'re Ready!',
-        text: 'You now know the basics! Feel free to explore all the options. Each setting affects your RAM recommendation.',
-        highlight: 'Pro tip: Try different priority levels (Cost, Balanced, Performance) to see how they impact your recommendation'
+        title: 'View Results',
+        text: 'Your RAM recommendation appears at the top along with cost and storage details.',
+        highlight: 'Save configurations for future reference'
     }
 ];
 

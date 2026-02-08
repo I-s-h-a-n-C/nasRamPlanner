@@ -432,24 +432,27 @@ p {
     flex-wrap: wrap;
 }
 
+.button-group button {
+    flex: 1;
+    min-width: 100px;
+    margin-right: 0;
+}
+
 /* Summary Cards */
 .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 0;
     margin-bottom: 40px;
-    border: 1px solid #334155;
-    border-bottom: none;
 }
 
 .summary-card {
-    background-color: #1e293b;
-    border: none;
-    border-right: 1px solid #334155;
-    border-bottom: 1px solid #334155;
+    background-color: #0f172a;
+    border: 1px solid #475569;
     border-radius: 0;
     padding: 20px;
     text-align: center;
+    transition: background-color 0.2s ease;
 }
 
 .summary-card:last-child {
@@ -457,7 +460,8 @@ p {
 }
 
 .summary-card:hover {
-    background-color: #334155;
+    background-color: #1e293b;
+    border-color: #7f8ba8;
 }
 
 .summary-icon {
@@ -480,6 +484,15 @@ p {
     font-size: 1.6em;
     font-weight: 700;
     color: #22d3ee;
+}
+
+/* Notes Card */
+.notes-card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 0;
+    padding: 20px;
+    margin-bottom: 40px;
 }
 
 /* Saved Configs Card */
