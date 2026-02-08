@@ -15,14 +15,14 @@ const presets = {
         maxRAM: '16',
         numDrives: '2',
         driveCapacity: '2000',
-        raidType: 'raid5',
+        raidType: 'raid1',
         primaryUse: 'backup',
         numUsers: '3',
         cpuCores: '4',
         osType: 'synology',
         priority: 'balanced',
         networkSpeed: '1',
-        internetConnected: 'yes',
+        internetConnected: 'no',
         remoteAccess: 'port-forward',
         botProtection: 'basic',
         ddrType: 'ddr4'
@@ -579,3 +579,29 @@ function closeTutorial() {
         localStorage.setItem('tutorialComplete', 'true');
     }
 }
+// RAID Info Popup Functions
+function showRAIDInfo() {
+    const popup = document.getElementById('raid-popup');
+    if (popup) {
+        popup.style.display = 'flex';
+    }
+}
+
+function hideRAIDInfo() {
+    const popup = document.getElementById('raid-popup');
+    if (popup) {
+        popup.style.display = 'none';
+    }
+}
+
+// Close popup when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    const raidPopup = document.getElementById('raid-popup');
+    if (raidPopup) {
+        raidPopup.addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideRAIDInfo();
+            }
+        });
+    }
+});

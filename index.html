@@ -92,7 +92,7 @@
             <label for="drive-capacity">Drive Capacity (GB)</label>
             <input type="number" id="drive-capacity" placeholder="2000" oninput="calculateRAM()" />
             
-            <label for="raid-type">RAID Type</label>
+            <label for="raid-type">RAID Type <button type="button" class="info-btn" onclick="showRAIDInfo()">ⓘ</button></label>
             <select id="raid-type" onchange="calculateRAM()">
                 <option value="">Select RAID</option>
                 <option value="raid0">RAID 0</option>
@@ -101,6 +101,31 @@
                 <option value="raid6">RAID 6</option>
                 <option value="raid10">RAID 10</option>
             </select>
+            
+            <!-- RAID Info Popup -->
+            <div id="raid-popup" class="info-popup" style="display: none;">
+                <div class="info-popup-content">
+                    <button type="button" class="info-popup-close" onclick="hideRAIDInfo()">×</button>
+                    <h3>RAID Types Explained</h3>
+                    <div class="raid-info-list">
+                        <div class="raid-info-item">
+                            <strong>RAID 0:</strong> No redundancy, maximum capacity, fastest. Data loss if any drive fails.
+                        </div>
+                        <div class="raid-info-item">
+                            <strong>RAID 1:</strong> Mirror, 50% capacity, excellent redundancy. Good for small drives.
+                        </div>
+                        <div class="raid-info-item">
+                            <strong>RAID 5:</strong> Parity, 67% capacity, good balance. One drive failure tolerated.
+                        </div>
+                        <div class="raid-info-item">
+                            <strong>RAID 6:</strong> Dual parity, 50% capacity, excellent protection. Two drive failures tolerated.
+                        </div>
+                        <div class="raid-info-item">
+                            <strong>RAID 10:</strong> Mirrored stripe, 50% capacity, high performance. Mirroring + striping.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Workload Section -->
