@@ -138,14 +138,13 @@ h3 {
 }
 
 .tutorial-btn-primary {
-    background-color: #06b6d4;
-    border-color: #06b6d4;
-    color: #0f172a;
+    background-color: #334155;
+    border-color: #334155;
+    color: #e2e8f0;
 }
 
 .tutorial-btn-primary:hover {
-    background-color: #22d3ee;
-    border-color: #22d3ee;
+    background-color: #475569;
 }
 
 .tutorial-btn-secondary:hover {
@@ -165,7 +164,7 @@ h3 {
 }
 
 .tutorial-dot.active {
-    background-color: #06b6d4;
+    background-color: #475569;
     width: 16px;
     border-radius: 0;
 }
@@ -315,11 +314,11 @@ p {
 
 .ram-current {
     height: 100%;
-    background: #10b981;
+    background: #10b981; /* green */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #04260a;
     font-weight: 500;
     font-size: 12px;
     min-width: 50px;
@@ -327,11 +326,11 @@ p {
 
 .ram-recommended {
     height: 100%;
-    background: #f59e0b;
+    background: #f59e0b; /* orange */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #2a1400;
     font-weight: 500;
     font-size: 12px;
     min-width: 0;
@@ -355,7 +354,7 @@ p {
 }
 
 .ram-stats strong {
-    color: #22d3ee;
+    color: #94a3b8;
     font-weight: 600;
 }
 
@@ -415,7 +414,7 @@ p {
 
 .recommendation-box {
     background-color: #0f172a;
-    border: 1px solid #06b6d4;
+    border: 1px solid #475569;
     border-radius: 0;
     padding: 24px;
     text-align: center;
@@ -425,7 +424,7 @@ p {
 .ram-big-number {
     font-size: 3.5em;
     font-weight: 700;
-    color: #22d3ee;
+    color: #94a3b8;
     margin-bottom: 12px;
     line-height: 1;
 }
@@ -493,7 +492,7 @@ p {
 .summary-value {
     font-size: 1.6em;
     font-weight: 700;
-    color: #22d3ee;
+    color: #94a3b8;
 }
 
 /* Notes Card */
@@ -618,7 +617,7 @@ p {
 }
 
 .raid-info-item strong {
-    color: #22d3ee;
+    color: #94a3b8;
     font-weight: 600;
 }
 
