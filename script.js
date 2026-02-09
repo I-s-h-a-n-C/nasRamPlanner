@@ -83,13 +83,161 @@ const presets = {
     }
 };
 
+// NAS model defaults
+const nasModelOptions = {
+    'synology-ds920': {
+        label: 'Synology DS920+',
+        currentRAM: 4,
+        maxRAM: 8,
+        cpuCores: 4,
+        ddrType: 'ddr4',
+        numDrives: 4,
+        osType: 'synology'
+    },
+    'synology-ds923': {
+        label: 'Synology DS923+',
+        currentRAM: 4,
+        maxRAM: 32,
+        cpuCores: 4,
+        ddrType: 'ddr4',
+        numDrives: 4,
+        osType: 'synology'
+    },
+    'synology-ds224': {
+        label: 'Synology DS224+',
+        currentRAM: 2,
+        maxRAM: 6,
+        cpuCores: 4,
+        ddrType: 'ddr4',
+        numDrives: 2,
+        osType: 'synology'
+    },
+    'qnap-ts464': {
+        label: 'QNAP TS-464',
+        currentRAM: 8,
+        maxRAM: 16,
+        cpuCores: 4,
+        ddrType: 'ddr4',
+        numDrives: 4,
+        osType: 'custom'
+    },
+    'qnap-ts453d': {
+        label: 'QNAP TS-453D',
+        currentRAM: 4,
+        maxRAM: 8,
+        cpuCores: 4,
+        ddrType: 'ddr4',
+        numDrives: 4,
+        osType: 'custom'
+    },
+    'truenas-minix': {
+        label: 'TrueNAS Mini X+',
+        currentRAM: 16,
+        maxRAM: 64,
+        cpuCores: 8,
+        ddrType: 'ddr4',
+        numDrives: 5,
+        osType: 'truenas'
+    },
+    'diy-4bay': {
+        label: 'DIY 4-Bay NAS',
+        currentRAM: 8,
+        maxRAM: 64,
+        cpuCores: 6,
+        ddrType: 'ddr4',
+        numDrives: 4,
+        osType: 'custom'
+    }
+};
+
+function applyNasModel(modelKey) {
+    const customInput = document.getElementById('nas-model-custom');
+    if (!modelKey) {
+        if (customInput) {
+            customInput.style.display = 'none';
+            customInput.value = '';
+        }
+        calculateRAM();
+        return;
+    }
+    if (modelKey === 'custom') {
+        if (customInput) {
+            customInput.style.display = 'block';
+        }
+        calculateRAM();
+        return;
+    }
+
+    const model = nasModelOptions[modelKey];
+    if (customInput) {
+        customInput.style.display = 'none';
+        customInput.value = '';
+    }
+    if (model) {
+        document.getElementById('current-ram').value = model.currentRAM;
+        document.getElementById('max-ram').value = model.maxRAM;
+        document.getElementById('cpu-cores').value = model.cpuCores;
+        document.getElementById('ddr-type').value = model.ddrType;
+        document.getElementById('num-drives').value = model.numDrives;
+        document.getElementById('os-type').value = model.osType;
+    }
+    calculateRAM();
+}
+
+function setCustomNasModel() {
+    const select = document.getElementById('nas-model');
+    const customInput = document.getElementById('nas-model-custom');
+    if (select && select.value !== 'custom') {
+        select.value = 'custom';
+    }
+    if (customInput) {
+        customInput.style.display = 'block';
+    }
+    calculateRAM();
+}
+
+function getNasModelValue() {
+    const select = document.getElementById('nas-model');
+    const customInput = document.getElementById('nas-model-custom');
+    if (!select) return '';
+    if (select.value === 'custom') {
+        return customInput && customInput.value ? customInput.value : 'Custom';
+    }
+    const model = nasModelOptions[select.value];
+    return model ? model.label : (select.options[select.selectedIndex]?.text || '');
+}
+
+function setNasModelFromSaved(modelName) {
+    const select = document.getElementById('nas-model');
+    const customInput = document.getElementById('nas-model-custom');
+    if (!select) return;
+
+    const matchKey = Object.keys(nasModelOptions).find(
+        (key) => nasModelOptions[key].label === modelName
+    );
+
+    if (matchKey) {
+        select.value = matchKey;
+        if (customInput) {
+            customInput.style.display = 'none';
+            customInput.value = '';
+        }
+    } else {
+        select.value = 'custom';
+        if (customInput) {
+            customInput.style.display = 'block';
+            customInput.value = modelName || '';
+        }
+    }
+}
+
 function loadPreset(presetName) {
     const preset = presets[presetName];
     if (!preset) {
         console.error('Preset not found:', presetName);
         return;
     }
-    document.getElementById('nas-model').value = preset.nasModel;
+    setNasModelFromSaved(preset.nasModel);
     document.getElementById('current-ram').value = preset.currentRAM;
     document.getElementById('max-ram').value = preset.maxRAM;
     document.getElementById('num-drives').value = preset.numDrives;
@@ -348,7 +496,7 @@ function calculateRAM() {
 function saveConfiguration() {
     const recommendedText = document.getElementById('recommended-ram-big').textContent;
     const config = {
-        nasModel: document.getElementById('nas-model').value,
+        nasModel: getNasModelValue(),
         currentRAM: document.getElementById('current-ram').value,
         maxRAM: document.getElementById('max-ram').value,
         numDrives: document.getElementById('num-drives').value,
@@ -383,7 +531,7 @@ function loadConfiguration() {
     }
 
     const config = configs[configs.length - 1];
-    document.getElementById('nas-model').value = config.nasModel;
+    setNasModelFromSaved(config.nasModel);
     document.getElementById('current-ram').value = config.currentRAM;
     document.getElementById('max-ram').value = config.maxRAM;
     document.getElementById('num-drives').value = config.numDrives;

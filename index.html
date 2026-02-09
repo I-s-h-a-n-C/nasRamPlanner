@@ -55,14 +55,24 @@
         </div>
     </div>
 
-    <!-- Main Configuration Grid -->
     <div class="config-grid">
         <!-- Hardware Section -->
         <div>
             <h2>Hardware</h2>
             
             <label for="nas-model">NAS Model</label>
-            <input type="text" id="nas-model" placeholder="e.g., Synology DS920+" oninput="calculateRAM()" />
+            <select id="nas-model" onchange="applyNasModel(this.value)">
+                <option value="">Select NAS</option>
+                <option value="synology-ds920">Synology DS920+</option>
+                <option value="synology-ds923">Synology DS923+</option>
+                <option value="synology-ds224">Synology DS224+</option>
+                <option value="qnap-ts464">QNAP TS-464</option>
+                <option value="qnap-ts453d">QNAP TS-453D</option>
+                <option value="truenas-minix">TrueNAS Mini X+</option>
+                <option value="diy-4bay">DIY 4-Bay NAS</option>
+                <option value="custom">Custom</option>
+            </select>
+            <input type="text" id="nas-model-custom" placeholder="Enter custom NAS model" oninput="setCustomNasModel()" style="display: none;" />
 
             <label for="current-ram">Current RAM</label>
             <input type="number" id="current-ram" placeholder="4" oninput="calculateRAM()" />
