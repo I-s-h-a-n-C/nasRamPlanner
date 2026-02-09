@@ -156,7 +156,7 @@
             </select>
         </div>
 
-        
+
         <!-- Preferences Section -->
         <div>
             <h2>Preferences</h2>
@@ -288,8 +288,22 @@
             <button onclick="saveConfiguration()" style="background-color: #10b981;">Save Config</button>
             <button onclick="loadConfiguration()" style="background-color: #3b82f6;">Load Latest</button>
             <button onclick="clearOldConfigs()" style="background-color: #ef4444;">Delete Old Configs</button>
+            <button onclick="openCompareMode()" style="background-color: #8b5cf6;">Compare Configs</button>
         </div>
         <div id="saved-configs" style="margin-top: 15px;"></div>
+    </div>
+
+    <!-- Compare Modal -->
+    <div id="compare-modal" class="compare-modal" style="display: none;">
+        <div class="compare-modal-content">
+            <div class="compare-header">
+                <h2>Compare Configurations</h2>
+                <button type="button" class="compare-close" onclick="closeCompareMode()">×</button>
+            </div>
+            <div id="compare-body">
+                <p>Select configurations to compare...</p>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>

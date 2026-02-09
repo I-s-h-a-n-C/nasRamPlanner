@@ -658,3 +658,107 @@ p {
         gap: 10px;
     }
 }
+
+/* Compare Modal */
+.compare-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5000;
+}
+
+.compare-modal-content {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 0;
+    padding: 24px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.compare-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.compare-header h2 {
+    margin: 0;
+    color: #e2e8f0;
+    font-size: 1.3em;
+}
+
+.compare-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.compare-close:hover {
+    color: #cbd5e1;
+}
+
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #334155;
+    margin-bottom: 20px;
+}
+
+.compare-table th,
+.compare-table td {
+    border: 1px solid #334155;
+    padding: 12px;
+    text-align: left;
+    color: #cbd5e1;
+    font-size: 0.9em;
+}
+
+.compare-table th {
+    background-color: #0f172a;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.compare-table td {
+    background-color: #1e293b;
+}
+
+.compare-checkbox {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.compare-button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.compare-button-group button {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 16px;
+    border: 1px solid #475569;
+    background-color: #334155;
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.compare-button-group button:hover {
+    background-color: #475569;
+}

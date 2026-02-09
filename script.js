@@ -567,3 +567,98 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Compare Configs
+function openCompareMode() {
+    const configs = JSON.parse(localStorage.getItem('nasConfigs')) || [];
+    if (configs.length < 2) {
+        alert('Need at least 2 saved configurations to compare');
+        return;
+    }
+    
+    const modal = document.getElementById('compare-modal');
+    const body = document.getElementById('compare-body');
+    
+    let html = '<div style="margin-bottom: 20px;">';
+    html += '<label style="display: block; margin-bottom: 12px; color: #cbd5e1;"><strong>Select 2-4 configs to compare:</strong></label>';
+    html += '<div style="margin-bottom: 20px;">';
+    
+    configs.forEach((config, idx) => {
+        html += `<div style="margin-bottom: 8px;">`;
+        html += `<input type="checkbox" class="compare-checkbox" value="${idx}" id="cfg-${idx}" style="cursor: pointer;">`;
+        html += `<label for="cfg-${idx}" style="cursor: pointer; color: #cbd5e1;">${config.nasModel || 'Config ' + (idx+1)} - ${config.recommendedRAM} RAM - ${config.timestamp}</label>`;
+        html += `</div>`;
+    });
+    
+    html += '</div>';
+    html += '<div class="compare-button-group">';
+    html += '<button onclick="generateComparison()">Compare Selected</button>';
+    html += '<button onclick="closeCompareMode()">Cancel</button>';
+    html += '</div>';
+    
+    body.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function closeCompareMode() {
+    const modal = document.getElementById('compare-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function generateComparison() {
+    const checkboxes = document.querySelectorAll('.compare-checkbox:checked');
+    if (checkboxes.length < 2 || checkboxes.length > 4) {
+        alert('Select 2-4 configurations to compare');
+        return;
+    }
+    
+    const configs = JSON.parse(localStorage.getItem('nasConfigs')) || [];
+    const selected = Array.from(checkboxes).map(cb => configs[parseInt(cb.value)]);
+    
+    const fields = ['nasModel', 'currentRAM', 'maxRAM', 'numDrives', 'driveCapacity', 'raidType', 'primaryUse', 'numUsers', 'cpuCores', 'osType', 'recommendedRAM', 'timestamp'];
+    
+    let html = '<table class="compare-table"><tr><th>Property</th>';
+    selected.forEach((_, i) => {
+        html += `<th>Config ${i+1}</th>`;
+    });
+    html += '</tr>';
+    
+    const labels = {
+        nasModel: 'NAS Model',
+        currentRAM: 'Current RAM (GB)',
+        maxRAM: 'Max RAM (GB)',
+        numDrives: 'Drives',
+        driveCapacity: 'Drive Size (GB)',
+        raidType: 'RAID Type',
+        primaryUse: 'Primary Use',
+        numUsers: 'Concurrent Users',
+        cpuCores: 'CPU Cores',
+        osType: 'OS Type',
+        recommendedRAM: 'Recommended RAM',
+        timestamp: 'Saved'
+    };
+    
+    fields.forEach(field => {
+        html += '<tr><td><strong>' + labels[field] + '</strong></td>';
+        selected.forEach(config => {
+            html += `<td>${config[field] || '-'}</td>`;
+        });
+        html += '</tr>';
+    });
+    
+    html += '</table>';
+    html += '<div class="compare-button-group">';
+    html += '<button onclick="closeCompareMode()">Close</button>';
+    html += '</div>';
+    
+    document.getElementById('compare-body').innerHTML = html;
+}
+
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('compare-modal');
+    if (event.target === modal) {
+        closeCompareMode();
+    }
+});
