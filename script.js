@@ -200,8 +200,7 @@ function calculateRAM() {
     if (vmExtra > 0) total += vmExtra;
 
     // Users
-    let userRAM = numUsers * 0.25; // per-user
-    userRAM = Math.min(userRAM, 10); // cap at 10GB
+    let userRAM = numUsers * 0.25; // per-user, no cap
     total += userRAM;
 
     // Security
@@ -214,7 +213,7 @@ function calculateRAM() {
     total += securityRAM;
 
     // Tiers
-    const tiers = [1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 56, 64, 70, 80, 90, 120, 128];
+    const tiers = [1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 56, 64, 70, 80, 90, 120, 128, 256, 512, 1024];
 
     // Min Safe
     let minSafeRAM = tiers[0];
@@ -233,11 +232,15 @@ function calculateRAM() {
         recommendedTotal = rawTotal + 1;
     }
     let recommendedRAM = tiers[0];
+    let exceedsCPU = false;
     for (let tier of tiers) {
         if (recommendedTotal <= tier) {
             recommendedRAM = tier;
             break;
         }
+    }
+    if (recommendedTotal > 128) {
+        exceedsCPU = true;
     }
     recommendedRAM = Math.min(maxRAM, recommendedRAM);
 
@@ -261,6 +264,7 @@ function calculateRAM() {
 
     // Notes
     let notes = [];
+    if (exceedsCPU) notes.push('More RAM needed than CPU can handle');
     if (numUsers > 10) notes.push('High concurrent users - verify this count is accurate');
     if (primaryUse === 'vm') notes.push('VM host - +10GB VM overhead applied for guest allocations');
     if (raidType === 'raid0') notes.push('RAID 0 has no redundancy - data loss if any drive fails');
@@ -272,12 +276,22 @@ function calculateRAM() {
     // Update recommendation
     const recRAMBig = document.getElementById('recommended-ram-big');
     const recText = document.getElementById('recommendation-text');
-    if (recRAMBig) recRAMBig.textContent = formatCapacity(recommendedRAM);
+    if (recRAMBig) {
+        if (exceedsCPU) {
+            recRAMBig.textContent = '>128GB';
+        } else {
+            recRAMBig.textContent = formatCapacity(recommendedRAM);
+        }
+    }
     if (recText) {
-        const upgradeMsg = recommendedRAM > currentRAM
-            ? `Upgrade by ${recommendedRAM - currentRAM}GB`
-            : 'Your current RAM is sufficient';
-        recText.textContent = upgradeMsg;
+        if (exceedsCPU) {
+            recText.textContent = 'Exceeds typical NAS capacity';
+        } else {
+            const upgradeMsg = recommendedRAM > currentRAM
+                ? `Upgrade by ${recommendedRAM - currentRAM}GB`
+                : 'Your current RAM is sufficient';
+            recText.textContent = upgradeMsg;
+        }
     }
 
     // Update summary
