@@ -762,3 +762,70 @@ p {
 .compare-button-group button:hover {
     background-color: #475569;
 }
+
+/* Footer */
+.footer {
+    border-top: 1px solid #334155;
+    margin-top: 60px;
+    padding: 40px 0 20px;
+    background-color: #0f172a;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 40px;
+    margin-bottom: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.footer-section h3 {
+    color: #e2e8f0;
+    font-size: 0.95em;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.footer-section p {
+    color: #94a3b8;
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.footer-about {
+    grid-column: span 1;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-section li {
+    margin-bottom: 8px;
+}
+
+.footer-section a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.footer-section a:hover {
+    color: #cbd5e1;
+    text-decoration: underline;
+}
+
+.footer-credit {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85em;
+    padding-top: 20px;
+    border-top: 1px solid #1e293b;
+}

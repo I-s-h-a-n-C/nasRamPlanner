@@ -265,11 +265,11 @@ function calculateRAM() {
     // Notes
     let notes = [];
     if (exceedsCPU) notes.push('More RAM needed than CPU can handle');
-    if (numUsers > 10) notes.push('High concurrent users - verify this count is accurate');
-    if (primaryUse === 'vm') notes.push('VM host - +10GB VM overhead applied for guest allocations');
-    if (raidType === 'raid0') notes.push('RAID 0 has no redundancy - data loss if any drive fails');
-    if (primaryUse === 'media' && remoteAccess === 'tunnel') notes.push('Transcoding over VPN will be slower - consider balanced priority');
-    if (usableStorage > 50000) notes.push('Very large storage - monitor pool health regularly');
+    if (numUsers > 10) notes.push('High concurrent users: verify this count is accurate');
+    if (primaryUse === 'vm') notes.push('VM host: +10GB VM overhead applied for guest allocations');
+    if (raidType === 'raid0') notes.push('RAID 0 has no redundancy: data loss if any drive fails');
+    if (primaryUse === 'media' && remoteAccess === 'tunnel') notes.push('Transcoding over VPN will be slower: consider balanced priority');
+    if (usableStorage > 50000) notes.push('Very large storage: monitor pool health regularly');
     if (botProtection === 'advanced' && primaryUse === 'backup') notes.push('Advanced scanning may be overkill for pure backup storage');
     const notesText = notes.length > 0 ? notes.join('<br>') : 'Configuration is conservative and well-balanced.';
 
@@ -488,6 +488,11 @@ function initializeTutorial() {
     // Check tutorial seen
     if (!localStorage.getItem('tutorialComplete')) {
         showTutorial();
+    } else {
+        const overlay = document.getElementById('tutorial-overlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
     }
 }
 

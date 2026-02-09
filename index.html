@@ -8,7 +8,7 @@
 </head>
 <body>
     <!-- Tutorial Overlay -->
-    <div id="tutorial-overlay" class="tutorial-overlay">
+    <div id="tutorial-overlay" class="tutorial-overlay hidden">
         <div class="tutorial-modal">
             <div class="tutorial-header">
                 <h2 id="tutorial-title">Welcome to NAS RAM Planner</h2>
@@ -186,14 +186,14 @@
                 <option value="25">25 Gbps</option>
             </select>
 
-            <label for="remote-access">Remote Access Method <a href="https://en.wikipedia.org/wiki/Tunneling_protocol" target="_blank" title="Learn more about tunneling vs port forwarding">ⓘ</a></label>
+            <label for="remote-access">Remote Access Method <button type="button" class="info-btn" onclick="window.open('https://en.wikipedia.org/wiki/Tunneling_protocol', '_blank')">ⓘ</button></label>
             <select id="remote-access" onchange="calculateRAM()">
                 <option value="none">None</option>
                 <option value="port-forward">Port Forwarding</option>
                 <option value="tunnel">Tunneling (VPN/SSH)</option>
             </select>
 
-            <label for="bot-protection">Bot/Malware Protection <a href="https://en.wikipedia.org/wiki/Zip_bomb" target="_blank" title="Learn about zip bomb protection">ⓘ</a></label>
+            <label for="bot-protection">Bot/Malware Protection <button type="button" class="info-btn" onclick="window.open('https://en.wikipedia.org/wiki/Zip_bomb', '_blank')">ⓘ</button></label>
             <select id="bot-protection" onchange="calculateRAM()">
                 <option value="none">None</option>
                 <option value="basic">Basic Scanning</option>
@@ -305,6 +305,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section footer-about">
+                <h3>NAS RAM Planner</h3>
+                <p>A RAM calculation tool designed to help you determine the optimal memory configuration for your NAS setup. Due to the RAM crisis, its best not to buy too much ram with these prices..</p>
+            </div>
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="https://en.wikipedia.org/wiki/RAID" target="_blank">RAID Types Guide</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/Network-attached_storage" target="_blank">NAS Basics</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/RAM" target="_blank">RAM Info</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Project</h3>
+                <ul>
+                    <li><a href="https://github.com/I-s-h-a-n-C/nasRamPlanner" target="_blank">GitHub Repo</a></li>
+                    <li><a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-credit">
+            Built with ❤️ by avidgamer
+        </div>
+    </footer>
 
     <script src="script.js"></script>
 </body>
